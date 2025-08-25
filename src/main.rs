@@ -1,11 +1,11 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use std::sync::{Arc, Mutex, mpsc};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
 use spectrum_analyzer::scaling::divide_by_N_sqrt;
 // use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{FrequencyLimit, FrequencySpectrum, samples_fft_to_spectrum};
+use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit, FrequencySpectrum};
 
 // https://github.com/RustAudio/cpal/issues/902
 // https://docs.rs/rtrb/latest/rtrb/
@@ -14,6 +14,9 @@ const NUM_BINS: usize = 128;
 // const RESOLUTION: usize = 4096;
 const MIN_FREQ: f32 = 100.0;
 const MAX_FREQ: f32 = 4000.0;
+// const SENSITIVITY: f32 = 0.2;
+const THRESHOLD: f32 = 0.01;
+const FADE: f32 = 0.9;
 
 const SAMPLE_SIZE: usize = 1024;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE * 2;

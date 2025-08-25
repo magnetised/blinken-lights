@@ -29,24 +29,6 @@ let
     };
   });
 
-  luxVersion = "2.1";
-  lux = stdenv.mkDerivation {
-    name = "lux-${luxVersion}";
-    nativeBuildInputs = [
-      autoconf
-      erlang
-    ];
-    src = fetchFromGitHub {
-      # owner = "hawk";
-      # repo = "lux";
-      owner = "electric-sql";
-      repo = "lux";
-      rev = "otp-27";
-      hash = "sha256-37KxPVXcT6eRPP16R2HR31aitilb0XSO3uzrtWTwVeA=";
-    };
-
-    preConfigurePhases = [ "autoconf" ];
-  };
   nodejs-pinned = (
     (import (builtins.fetchGit {
       # https://lazamar.co.uk/nix-versions/?channel=nixpkgs-unstable&package=nodejs
@@ -113,7 +95,6 @@ in
 mkShell {
   # buildInputs = [ pkgs.zig pkgs.xz ];
   packages = [
-    lux
     erlang
     # elixir_main
     elixir
