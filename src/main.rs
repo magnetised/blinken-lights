@@ -83,7 +83,7 @@ fn bin_magnitudes(magnitudes: Vec<f32>) -> Vec<f32> {
         if !(MIN_FREQ..=MAX_FREQ).contains(&freq) {
             continue;
         }
-        let bin_index = ((freq - MIN_FREQ) / (MAX_FREQ - MIN_FREQ) * NUM_BINS as f32) as usize;
+        let bin_index = (((freq - MIN_FREQ) / (MAX_FREQ - MIN_FREQ) * NUM_BINS as f32) as usize).min(NUM_BINS - 1);
         if bin_index < NUM_BINS {
             bins[bin_index] += magnitude;
             counts[bin_index] += 1;
@@ -112,11 +112,11 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
         if mag > peak_magnitudes[i] {
             peak_magnitudes[i] = mag;
         } else {
-            peak_magnitudes[i] *= 0.6;
+            peak_magnitudes[i] *= 0.8;
         }
 
         let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
-        let character = "■";
+        let character = "●";
 
         lines.push(format!(
             "\x1B[38;2;{0};{0};0m{1}\x1B[0m",
