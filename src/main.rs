@@ -1,30 +1,55 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use rustfft::num_complex::Complex;
-use rustfft::FftPlanner;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use std::thread;
 use std::time::Duration;
 
+use spectrum_analyzer::scaling::divide_by_N_sqrt;
+// use spectrum_analyzer::windows::hann_window;
+use spectrum_analyzer::{FrequencyLimit, FrequencySpectrum, samples_fft_to_spectrum};
+
+// https://github.com/RustAudio/cpal/issues/902
+// https://docs.rs/rtrb/latest/rtrb/
+
 const NUM_BINS: usize = 128;
-const RESOLUTION: usize = 4096;
-const MIN_FREQ: f32 = 1000.0;
+// const RESOLUTION: usize = 4096;
+const MIN_FREQ: f32 = 100.0;
 const MAX_FREQ: f32 = 4000.0;
 
+const SAMPLE_SIZE: usize = 1024;
+const RINGBUFFER_SIZE: usize = SAMPLE_SIZE * 2;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (_stream, rx) = setup_audio_capture()?;
+    let (producer, mut consumer) = rtrb::RingBuffer::<f32>::new(RINGBUFFER_SIZE);
+    let (_stream, rx) = setup_audio_capture(producer)?;
     let bins = Arc::new(Mutex::new(vec![0.0; NUM_BINS]));
 
     let bins_clone = Arc::clone(&bins);
+
     thread::spawn(move || {
-        let mut planner = FftPlanner::new();
-        let fft = planner.plan_fft_forward(RESOLUTION);
         loop {
             match rx.recv() {
-                Ok(buffer) => {
-                    let magnitudes = process_fft(buffer, &fft);
-                    let new_bins = bin_magnitudes(magnitudes);
-                    if let Ok(mut bins_lock) = bins_clone.lock() {
-                        *bins_lock = new_bins;
+                Ok(_count) => {
+                    if consumer.slots() >= SAMPLE_SIZE {
+                        let read_chunk = consumer.read_chunk(SAMPLE_SIZE).unwrap();
+                        let samples = read_chunk.into_iter().collect::<Vec<f32>>();
+                        // let hann_window = hann_window(&samples);
+                        // let buffer: Vec<Complex<f32>> = data.iter().map(|&s| Complex::new(s, 0.0)).collect();
+                        let spectrum = samples_fft_to_spectrum(
+                            &samples,
+                            // sampling rate
+                            44100,
+                            // optional frequency limit: e.g. only interested in frequencies 50 <= f <= 150?
+                            // FrequencyLimit::All,
+                            FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
+                            // optional scale
+                            Some(&divide_by_N_sqrt),
+                        )
+                        .unwrap();
+                        // let magnitudes = process_fft(buffer, &fft);
+                        let new_bins = bin_magnitudes(spectrum);
+                        if let Ok(mut bins_lock) = bins_clone.lock() {
+                            *bins_lock = new_bins;
+                        }
                     }
                 }
                 Err(_) => break,
@@ -33,6 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let mut peak_magnitudes = vec![0.0; NUM_BINS];
+
     loop {
         thread::sleep(Duration::from_millis(16));
         if let Ok(bins_lock) = bins.lock() {
@@ -41,18 +67,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn setup_audio_capture() -> Result<(cpal::Stream, mpsc::Receiver<Vec<Complex<f32>>>), Box<dyn std::error::Error>> {
+fn setup_audio_capture(
+    mut producer: rtrb::Producer<f32>,
+) -> Result<(cpal::Stream, mpsc::Receiver<usize>), Box<dyn std::error::Error>> {
     let host = cpal::default_host();
-    let device = host.default_input_device().expect("no input device available");
-    let config = device.default_input_config().expect("no default input config");
+    let device = host
+        .default_input_device()
+        .expect("no input device available");
+    let config = device
+        .default_input_config()
+        .expect("no default input config");
     let (tx, rx) = mpsc::channel();
 
+    let mut stream_config: cpal::StreamConfig = config.into();
+    stream_config.buffer_size = cpal::BufferSize::Fixed(SAMPLE_SIZE as u32);
+
     let stream = device.build_input_stream(
-        &config.into(),
-        move |data: &[f32], _: &cpal::InputCallbackInfo| {
-            let buffer: Vec<Complex<f32>> = data.iter().map(|&s| Complex::new(s, 0.0)).collect();
-            if tx.send(buffer).is_err() {
+        &stream_config,
+        move |samples: &[f32], _: &cpal::InputCallbackInfo| {
+            // println!("here {}", samples.len());
+            let chunk = producer.write_chunk_uninit(samples.len()).unwrap();
+            chunk.fill_from_iter(samples.iter().copied());
+            if tx.send(samples.len()).is_err() {
                 // The receiver has been dropped, so we can stop the thread.
+                eprintln!("error");
             }
         },
         |err| eprintln!("an error occurred on stream: {}", err),
@@ -63,29 +101,17 @@ fn setup_audio_capture() -> Result<(cpal::Stream, mpsc::Receiver<Vec<Complex<f32
     Ok((stream, rx))
 }
 
-fn process_fft(mut buffer: Vec<Complex<f32>>, fft: &std::sync::Arc<dyn rustfft::Fft<f32>>) -> Vec<f32> {
-    if buffer.len() > RESOLUTION {
-        buffer.resize(RESOLUTION, Complex::new(0.0, 0.0));
-    } else {
-        buffer.resize(RESOLUTION, Complex::new(0.0, 0.0));
-    }
-    fft.process(&mut buffer);
-    buffer.iter().take(buffer.len() / 2).map(|c| (c.re.powi(2) + c.im.powi(2)).sqrt()).collect()
-}
-
-fn bin_magnitudes(magnitudes: Vec<f32>) -> Vec<f32> {
+fn bin_magnitudes(spectrum: FrequencySpectrum) -> Vec<f32> {
     let mut bins = vec![0.0; NUM_BINS];
     let mut counts = vec![0; NUM_BINS];
-    let frequency_resolution = 44100.0 / RESOLUTION as f32;
+    // let frequency_resolution = 44100.0 / RESOLUTION as f32;
 
-    for (i, &magnitude) in magnitudes.iter().enumerate() {
-        let freq = i as f32 * frequency_resolution;
-        if !(MIN_FREQ..=MAX_FREQ).contains(&freq) {
-            continue;
-        }
-        let bin_index = (((freq - MIN_FREQ) / (MAX_FREQ - MIN_FREQ) * NUM_BINS as f32) as usize).min(NUM_BINS - 1);
+    for (freq, value) in spectrum.data().iter() {
+        let bin_index = ((((freq.val()) - MIN_FREQ) / (MAX_FREQ - MIN_FREQ) * NUM_BINS as f32)
+            as usize)
+            .min(NUM_BINS - 1);
         if bin_index < NUM_BINS {
-            bins[bin_index] += magnitude;
+            bins[bin_index] += value.val();
             counts[bin_index] += 1;
         }
     }
@@ -102,17 +128,17 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
     let mut lines: Vec<String> = Vec::with_capacity(NUM_BINS);
 
     for (i, &magnitude) in bins.iter().enumerate() {
-        let mut mag = magnitude;
-        const THRESHOLD: f32 = 1.0;
+        // let mut mag = magnitude;
+        // const THRESHOLD: f32 = 1.0;
+        //
+        // if mag < THRESHOLD {
+        //     mag = 0.0;
+        // }
 
-        if mag < THRESHOLD {
-            mag = 0.0;
-        }
-
-        if mag > peak_magnitudes[i] {
-            peak_magnitudes[i] = mag;
+        if magnitude > peak_magnitudes[i] {
+            peak_magnitudes[i] = magnitude;
         } else {
-            peak_magnitudes[i] *= 0.8;
+            peak_magnitudes[i] *= 0.9;
         }
 
         let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
