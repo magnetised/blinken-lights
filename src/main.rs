@@ -12,16 +12,17 @@ use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit, FrequencySpectr
 
 const NUM_BINS: usize = 128;
 // const RESOLUTION: usize = 4096;
-const MIN_FREQ: f32 = 100.0;
-const MAX_FREQ: f32 = 4000.0;
+const MIN_FREQ: f32 = 00.0;
+const MAX_FREQ: f32 = 1200.0;
 // const SENSITIVITY: f32 = 0.2;
 const THRESHOLD: f32 = 0.01;
 const FADE: f32 = 0.9;
 
-const SAMPLE_SIZE: usize = 1024;
-const RINGBUFFER_SIZE: usize = SAMPLE_SIZE * 2;
+const SAMPLE_SIZE: usize = 2048;
+const RINGBUFFER_SIZE: usize = SAMPLE_SIZE * 8;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    print!("\x1B[?25l");
     let (producer, mut consumer) = rtrb::RingBuffer::<f32>::new(RINGBUFFER_SIZE);
     let (_stream, rx) = setup_audio_capture(producer)?;
     let bins = Arc::new(Mutex::new(vec![0.0; NUM_BINS]));
@@ -33,6 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             match rx.recv() {
                 Ok(_count) => {
                     if consumer.slots() >= SAMPLE_SIZE {
+                        // println!("{}", consumer.slots());
                         let read_chunk = consumer.read_chunk(SAMPLE_SIZE).unwrap();
                         let samples = read_chunk.into_iter().collect::<Vec<f32>>();
                         // let hann_window = hann_window(&samples);
@@ -83,7 +85,7 @@ fn setup_audio_capture(
     let (tx, rx) = mpsc::channel();
 
     let mut stream_config: cpal::StreamConfig = config.into();
-    stream_config.buffer_size = cpal::BufferSize::Fixed(SAMPLE_SIZE as u32);
+    stream_config.buffer_size = cpal::BufferSize::Fixed(256 as u32);
 
     let stream = device.build_input_stream(
         &stream_config,
@@ -95,6 +97,7 @@ fn setup_audio_capture(
                 // The receiver has been dropped, so we can stop the thread.
                 eprintln!("error");
             }
+            thread::sleep(Duration::from_millis(6));
         },
         |err| eprintln!("an error occurred on stream: {}", err),
         None,
@@ -152,5 +155,6 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
             brightness, character
         ));
     }
-    print!("\x1B[2J\x1B[1;1H{}", lines.join(""));
+    // print!("\x1B[2J\x1B[1;1H{}", lines.join(""));
+    print!("{}\n", lines.join(""));
 }
