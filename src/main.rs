@@ -16,7 +16,7 @@ const MIN_FREQ: f32 = 20.0;
 const MAX_FREQ: f32 = 4200.0;
 // const SENSITIVITY: f32 = 0.2;
 // const THRESHOLD: f32 = 0.01;
-const FADE: f32 = 0.9;
+const FADE: f32 = 0.93;
 
 const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE * 8;
@@ -34,21 +34,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             match rx.recv() {
                 Ok(_count) => {
                     if consumer.slots() >= SAMPLE_SIZE {
-                        // println!("{}", consumer.slots());
                         let read_chunk = consumer.read_chunk(SAMPLE_SIZE).unwrap();
                         let samples = read_chunk.into_iter().collect::<Vec<f32>>();
                         let hann_window = hann_window(&samples);
-                        // let buffer: Vec<Complex<f32>> = data.iter().map(|&s| Complex::new(s, 0.0)).collect();
                         let spectrum = samples_fft_to_spectrum(
                             &hann_window,
                             44100,
                             FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
-                            // optional scale
                             Some(&divide_by_N_sqrt),
-                            // None
                         )
                         .unwrap();
-                        // let magnitudes = process_fft(buffer, &fft);
                         let new_bins = bin_magnitudes(spectrum);
                         if let Ok(mut bins_lock) = bins_clone.lock() {
                             *bins_lock = new_bins;
@@ -80,6 +75,7 @@ fn setup_audio_capture(
     let config = device
         .default_input_config()
         .expect("no default input config");
+
     let (tx, rx) = mpsc::channel();
 
     let mut stream_config: cpal::StreamConfig = config.into();
@@ -88,7 +84,6 @@ fn setup_audio_capture(
     let stream = device.build_input_stream(
         &stream_config,
         move |samples: &[f32], _: &cpal::InputCallbackInfo| {
-            // println!("here {}", samples.len());
             let chunk = producer.write_chunk_uninit(samples.len()).unwrap();
             chunk.fill_from_iter(samples.iter().copied());
             if tx.send(samples.len()).is_err() {
@@ -107,31 +102,28 @@ fn setup_audio_capture(
 
 fn bin_magnitudes(spectrum: FrequencySpectrum) -> Vec<f32> {
     let mut bins = vec![0.0; NUM_BINS];
-    let mut counts = vec![0; NUM_BINS];
-    // let frequency_resolution = 44100.0 / RESOLUTION as f32;
+    // let mut counts = vec![0; NUM_BINS];
 
     for (freq, value) in spectrum.data().iter() {
-        // let bin_index = ((((freq.val()) - MIN_FREQ) / (MAX_FREQ - MIN_FREQ) * NUM_BINS as f32)
-        //     as usize)
-        //     .min(NUM_BINS - 1);
         let bin_index = frequency_to_nearest_key(freq.val());
-        // println!("{} => {} ({}) {}", freq.val(), bin_index, key_number_to_name(bin_index), value.val());
+        // println!("{}", bin_index);
         if bin_index < NUM_BINS {
             bins[bin_index] += value.val();
-            counts[bin_index] += 1;
+            // counts[bin_index] += 1;
         }
     }
 
-    for i in 0..NUM_BINS {
-        if counts[i] > 0 {
-            bins[i] /= counts[i] as f32;
-        }
-    }
+    // not normalizing makes the display more sensitive
+    // for i in 0..NUM_BINS {
+    //     if counts[i] > 0 {
+    //         bins[i] /= counts[i] as f32;
+    //     }
+    // }
     bins
 }
 
 fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
-    let mut lines: Vec<String> = Vec::with_capacity(NUM_BINS);
+    let mut lights: Vec<String> = Vec::with_capacity(NUM_BINS);
 
     for (i, &magnitude) in bins.iter().enumerate() {
         // let mut mag = magnitude;
@@ -150,13 +142,13 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
         let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
         let character = "●";
 
-        lines.push(format!(
+        lights.push(format!(
             "\x1B[38;2;{0};{0};0m{1}\x1B[0m",
             brightness, character
         ));
     }
-    // print!("\x1B[2J\x1B[1;1H{}", lines.join(""));
-    print!("{}\n", lines.join(""));
+    print!("\x1B[2J\x1B[1;1H{}", lights.join(""));
+    // print!("{}\n", lights.join(""));
 }
 
 fn frequency_to_key_number(frequency: f32) -> f32 {
@@ -165,7 +157,7 @@ fn frequency_to_key_number(frequency: f32) -> f32 {
 
 // Function to get the nearest integer key number
 fn frequency_to_nearest_key(frequency: f32) -> usize {
-    1 + (frequency_to_key_number(frequency) - 0.5).round() as usize
+     (frequency_to_key_number(frequency) - 0.5).round() as usize
 }
 
 #[allow(dead_code)]
