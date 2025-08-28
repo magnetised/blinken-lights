@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // thread::spawn(move || {
     loop {
-        thread::sleep(Duration::from_millis(16));
+        thread::sleep(Duration::from_millis(5));
         if let Ok(mut buffer) = consumer_buffer.lock() {
             // if let Ok(lock) = my_mutex.lock() {
             if buffer.is_full() {
