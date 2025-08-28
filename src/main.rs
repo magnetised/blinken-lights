@@ -1,23 +1,21 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use std::thread;
 use std::time::Duration;
 
 use spectrum_analyzer::scaling::divide_by_N_sqrt;
-// sensitive, but needs low freq to be excluded
-use spectrum_analyzer::scaling::scale_20_times_log10;
 // use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit, FrequencySpectrum};
+use spectrum_analyzer::{FrequencyLimit, FrequencySpectrum, samples_fft_to_spectrum};
 
 // https://github.com/RustAudio/cpal/issues/902
 // https://docs.rs/rtrb/latest/rtrb/
 
-const NUM_BINS: usize = 128;
+const NUM_BINS: usize = 88;
 // const RESOLUTION: usize = 4096;
-const MIN_FREQ: f32 = 100.0;
-const MAX_FREQ: f32 = 1200.0;
+const MIN_FREQ: f32 = 20.0;
+const MAX_FREQ: f32 = 4200.0;
 // const SENSITIVITY: f32 = 0.2;
-const THRESHOLD: f32 = 0.01;
+// const THRESHOLD: f32 = 0.01;
 const FADE: f32 = 0.9;
 
 const SAMPLE_SIZE: usize = 2048;
@@ -46,8 +44,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             44100,
                             FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
                             // optional scale
-                            Some(&scale_20_times_log10),
-                        // None
+                            Some(&divide_by_N_sqrt),
+                            // None
                         )
                         .unwrap();
                         // let magnitudes = process_fft(buffer, &fft);
@@ -113,9 +111,11 @@ fn bin_magnitudes(spectrum: FrequencySpectrum) -> Vec<f32> {
     // let frequency_resolution = 44100.0 / RESOLUTION as f32;
 
     for (freq, value) in spectrum.data().iter() {
-        let bin_index = ((((freq.val()) - MIN_FREQ) / (MAX_FREQ - MIN_FREQ) * NUM_BINS as f32)
-            as usize)
-            .min(NUM_BINS - 1);
+        // let bin_index = ((((freq.val()) - MIN_FREQ) / (MAX_FREQ - MIN_FREQ) * NUM_BINS as f32)
+        //     as usize)
+        //     .min(NUM_BINS - 1);
+        let bin_index = frequency_to_nearest_key(freq.val());
+        // println!("{} => {} ({}) {}", freq.val(), bin_index, key_number_to_name(bin_index), value.val());
         if bin_index < NUM_BINS {
             bins[bin_index] += value.val();
             counts[bin_index] += 1;
@@ -144,7 +144,7 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
         if magnitude > peak_magnitudes[i] {
             peak_magnitudes[i] = magnitude;
         } else {
-            peak_magnitudes[i] *= 0.9;
+            peak_magnitudes[i] *= FADE;
         }
 
         let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
@@ -157,4 +157,46 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
     }
     // print!("\x1B[2J\x1B[1;1H{}", lines.join(""));
     print!("{}\n", lines.join(""));
+}
+
+fn frequency_to_key_number(frequency: f32) -> f32 {
+    12.0 * (frequency / 440.0).log2() + 49.0
+}
+
+// Function to get the nearest integer key number
+fn frequency_to_nearest_key(frequency: f32) -> usize {
+    1 + (frequency_to_key_number(frequency) - 0.5).round() as usize
+}
+
+#[allow(dead_code)]
+fn key_number_to_name(key_number: usize) -> String {
+    if key_number < 1 || key_number > 88 {
+        return "Out of range".to_string();
+    }
+
+    // Piano starts at A0 (key 1), A4 is key 49
+    let note_names = [
+        "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#",
+    ];
+    let key_index = key_number - 1; // Convert to 0-based index
+
+    // Calculate octave and note
+    let octave = if key_index < 3 {
+        // A0, A#0, B0
+        0
+    } else {
+        // C1 starts at key 4 (index 3)
+        (key_index - 3) / 12 + 1
+    };
+
+    let note_index = if key_index < 3 {
+        // A0, A#0, B0
+        key_index
+    } else {
+        // C1 and beyond
+        (key_index - 3) % 12 + 3
+    };
+
+    let note_index = note_index % 12;
+    format!("{}{}", note_names[note_index], octave)
 }
