@@ -70,6 +70,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     stream.play()?;
 
+    // turn off the cursor
+    print!("\x1B[?25l");
     // thread::spawn(move || {
     loop {
         thread::sleep(Duration::from_millis(5));
