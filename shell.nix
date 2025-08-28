@@ -131,6 +131,7 @@ mkShell {
     alsa-lib
     alsa-utils
     alsa-tools
+    rust-analyzer
   ];
   # https://nixos.wiki/wiki/Development_environment_with_nix-shell
   # NIX_ENFORCE_PURITY lets me cc things

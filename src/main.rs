@@ -22,7 +22,6 @@ const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE * 8;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    print!("\x1B[?25l");
     let (producer, mut consumer) = rtrb::RingBuffer::<f32>::new(RINGBUFFER_SIZE);
     let (_stream, rx) = setup_audio_capture(producer)?;
     let bins = Arc::new(Mutex::new(vec![0.0; NUM_BINS]));
@@ -58,10 +57,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut peak_magnitudes = vec![0.0; NUM_BINS];
 
     loop {
-        thread::sleep(Duration::from_millis(16));
+        // turn off the cursor
+        print!("\x1B[?25l");
         if let Ok(bins_lock) = bins.lock() {
             visualize_bins(bins_lock.clone(), &mut peak_magnitudes);
         }
+        thread::sleep(Duration::from_millis(6));
     }
 }
 
@@ -157,7 +158,7 @@ fn frequency_to_key_number(frequency: f32) -> f32 {
 
 // Function to get the nearest integer key number
 fn frequency_to_nearest_key(frequency: f32) -> usize {
-     (frequency_to_key_number(frequency) - 0.5).round() as usize
+    (frequency_to_key_number(frequency) - 0.5).round() as usize
 }
 
 #[allow(dead_code)]
