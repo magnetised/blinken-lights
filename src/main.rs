@@ -4,7 +4,7 @@ use std::thread;
 use std::time::Duration;
 
 use spectrum_analyzer::scaling::divide_by_N_sqrt;
-// use spectrum_analyzer::windows::hann_window;
+use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{FrequencyLimit, FrequencySpectrum, samples_fft_to_spectrum};
 
 // https://github.com/RustAudio/cpal/issues/902
@@ -18,7 +18,7 @@ const MAX_FREQ: f32 = 4200.0;
 // const THRESHOLD: f32 = 0.01;
 const FADE: f32 = 0.9;
 
-const SAMPLE_SIZE: usize = 2048;
+const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE * 8;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,10 +37,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         // println!("{}", consumer.slots());
                         let read_chunk = consumer.read_chunk(SAMPLE_SIZE).unwrap();
                         let samples = read_chunk.into_iter().collect::<Vec<f32>>();
-                        // let hann_window = hann_window(&samples);
+                        let hann_window = hann_window(&samples);
                         // let buffer: Vec<Complex<f32>> = data.iter().map(|&s| Complex::new(s, 0.0)).collect();
                         let spectrum = samples_fft_to_spectrum(
-                            &samples,
+                            &hann_window,
                             44100,
                             FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
                             // optional scale
