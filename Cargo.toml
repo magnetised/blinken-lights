@@ -10,3 +10,4 @@ terminal_size = "0.3.0"
 ctrlc = "3.4.4"
 spectrum-analyzer = "1.7.0" # Hypothetical crate for spectrum analysis
 rtrb = "0.3.2"
+ringbuf = "0.4.8"
