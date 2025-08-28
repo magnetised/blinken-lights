@@ -4,6 +4,8 @@ use std::thread;
 use std::time::Duration;
 
 use spectrum_analyzer::scaling::divide_by_N_sqrt;
+// sensitive, but needs low freq to be excluded
+use spectrum_analyzer::scaling::scale_20_times_log10;
 // use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit, FrequencySpectrum};
 
@@ -12,7 +14,7 @@ use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit, FrequencySpectr
 
 const NUM_BINS: usize = 128;
 // const RESOLUTION: usize = 4096;
-const MIN_FREQ: f32 = 00.0;
+const MIN_FREQ: f32 = 100.0;
 const MAX_FREQ: f32 = 1200.0;
 // const SENSITIVITY: f32 = 0.2;
 const THRESHOLD: f32 = 0.01;
@@ -41,13 +43,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         // let buffer: Vec<Complex<f32>> = data.iter().map(|&s| Complex::new(s, 0.0)).collect();
                         let spectrum = samples_fft_to_spectrum(
                             &samples,
-                            // sampling rate
                             44100,
-                            // optional frequency limit: e.g. only interested in frequencies 50 <= f <= 150?
-                            // FrequencyLimit::All,
                             FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
                             // optional scale
-                            Some(&divide_by_N_sqrt),
+                            Some(&scale_20_times_log10),
+                        // None
                         )
                         .unwrap();
                         // let magnitudes = process_fft(buffer, &fft);
@@ -97,7 +97,7 @@ fn setup_audio_capture(
                 // The receiver has been dropped, so we can stop the thread.
                 eprintln!("error");
             }
-            thread::sleep(Duration::from_millis(6));
+            // thread::sleep(Duration::from_millis(6));
         },
         |err| eprintln!("an error occurred on stream: {}", err),
         None,
