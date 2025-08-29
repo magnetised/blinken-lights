@@ -9,15 +9,9 @@ use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit, FrequencySpectr
 
 use ringbuf::traits::*;
 
-// https://github.com/RustAudio/cpal/issues/902
-// https://docs.rs/rtrb/latest/rtrb/
-
 const NUM_BINS: usize = 88;
-// const RESOLUTION: usize = 4096;
-const MIN_FREQ: f32 = 00.0;
+const MIN_FREQ: f32 = 30.0;
 const MAX_FREQ: f32 = 4200.0;
-// const SENSITIVITY: f32 = 0.2;
-// const THRESHOLD: f32 = 0.01;
 const FADE: f32 = 0.8;
 
 const SAMPLE_SIZE: usize = 8192;
@@ -41,7 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut stream_config: cpal::StreamConfig = config.into();
 
-    stream_config.buffer_size = cpal::BufferSize::Fixed(256 as u32);
+    stream_config.buffer_size = cpal::BufferSize::Fixed(64 as u32);
 
     let mut peak_magnitudes = vec![0.0; NUM_BINS];
 
@@ -60,23 +54,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // turn off the cursor
     print!("\x1B[?25l");
+
+    thread::sleep(Duration::from_millis(100));
     loop {
-        thread::sleep(Duration::from_millis(5));
-        if let Ok(mut buffer) = consumer_buffer.lock() {
-            if buffer.is_full() {
-                let mut samples = [0.0f32; SAMPLE_SIZE];
-                let _bytes_read = buffer.pop_slice(&mut samples);
-                let hann_window = hann_window(&samples);
-                let spectrum = samples_fft_to_spectrum(
-                    &hann_window,
-                    44100,
-                    FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
-                    Some(&divide_by_N_sqrt),
-                )
-                .unwrap();
-                let new_bins = bin_magnitudes(spectrum);
-                visualize_bins(new_bins, &mut peak_magnitudes);
-            }
+        thread::sleep(Duration::from_millis(32));
+        if let Ok(buffer) = consumer_buffer.lock() {
+            // if buffer.is_full() {
+            let mut samples = [0.0f32; SAMPLE_SIZE];
+            let _samples_read = buffer.peek_slice(&mut samples);
+            let hann_window = hann_window(&samples);
+            let spectrum = samples_fft_to_spectrum(
+                &hann_window,
+                stream_config.sample_rate.0 as u32,
+                FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
+                Some(&divide_by_N_sqrt),
+            )
+            .unwrap();
+            let new_bins = bin_magnitudes(spectrum);
+            visualize_bins(new_bins, &mut peak_magnitudes);
+            // }
         }
     }
 }
@@ -112,8 +108,8 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
             brightness, character
         ));
     }
-    // print!("\x1B[2J\x1B[1;1H{}", lights.join(""));
-    print!("{}\n", lights.join(""));
+    print!("\x1B[2J\x1B[1;1H{}", lights.join(""));
+    // print!("{}\n", lights.join(""));
 }
 
 fn frequency_to_key_number(frequency: f32) -> f32 {
