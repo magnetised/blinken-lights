@@ -55,25 +55,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // turn off the cursor
     print!("\x1B[?25l");
 
+    // wait for buffer to fill
     thread::sleep(Duration::from_millis(100));
     loop {
-        thread::sleep(Duration::from_millis(32));
+        thread::sleep(Duration::from_millis(16));
+        let mut samples = [0.0f32; SAMPLE_SIZE];
         if let Ok(buffer) = consumer_buffer.lock() {
-            // if buffer.is_full() {
-            let mut samples = [0.0f32; SAMPLE_SIZE];
             let _samples_read = buffer.peek_slice(&mut samples);
-            let hann_window = hann_window(&samples);
-            let spectrum = samples_fft_to_spectrum(
-                &hann_window,
-                stream_config.sample_rate.0 as u32,
-                FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
-                Some(&divide_by_N_sqrt),
-            )
-            .unwrap();
-            let new_bins = bin_magnitudes(spectrum);
-            visualize_bins(new_bins, &mut peak_magnitudes);
-            // }
         }
+        let hann_window = hann_window(&samples);
+        let spectrum = samples_fft_to_spectrum(
+            &hann_window,
+            stream_config.sample_rate.0 as u32,
+            FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
+            Some(&divide_by_N_sqrt),
+        )
+        .unwrap();
+        let new_bins = bin_magnitudes(spectrum);
+        visualize_bins(new_bins, &mut peak_magnitudes);
     }
 }
 
