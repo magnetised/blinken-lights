@@ -17,6 +17,11 @@ const FADE: f32 = 0.8;
 const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
 
+enum KeyColour {
+    White,
+    Black,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ringbuf = ringbuf::HeapRb::<f32>::new(RINGBUFFER_SIZE);
 
@@ -35,7 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut stream_config: cpal::StreamConfig = config.into();
 
-    stream_config.buffer_size = cpal::BufferSize::Fixed(64 as u32);
+    stream_config.buffer_size = cpal::BufferSize::Fixed(256 as u32);
 
     let mut peak_magnitudes = vec![0.0; NUM_BINS];
 
@@ -58,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // wait for buffer to fill
     thread::sleep(Duration::from_millis(100));
     loop {
-        thread::sleep(Duration::from_millis(16));
+        thread::sleep(Duration::from_millis(8));
         let mut samples = [0.0f32; SAMPLE_SIZE];
         if let Ok(buffer) = consumer_buffer.lock() {
             let _samples_read = buffer.peek_slice(&mut samples);
@@ -69,8 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             stream_config.sample_rate.0 as u32,
             FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
             Some(&divide_by_N_sqrt),
-        )
-        .unwrap();
+        )?;
         let new_bins = bin_magnitudes(spectrum);
         visualize_bins(new_bins, &mut peak_magnitudes);
     }
@@ -92,7 +96,13 @@ fn bin_magnitudes(spectrum: FrequencySpectrum) -> Vec<f32> {
 fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
     let mut lights: Vec<String> = Vec::with_capacity(NUM_BINS);
 
+    let black_keys = [1, 4, 6, 9, 11];
     for (i, &magnitude) in bins.iter().enumerate() {
+        let key_colour: KeyColour = if black_keys.contains(&(i % 12)) {
+            KeyColour::Black
+        } else {
+            KeyColour::White
+        };
         if magnitude > peak_magnitudes[i] {
             peak_magnitudes[i] = magnitude;
         } else {
@@ -100,14 +110,31 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
         }
 
         let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
-        let character = "●";
+        // let character = "●";
+        let character = "█";
+        // let character = "■";
 
+        let colour = match key_colour {
+            KeyColour::Black => {
+                format!("{0};0;0", brightness)
+            }
+            KeyColour::White => {
+                format!("0;{0};0", brightness)
+            }
+        };
         lights.push(format!(
-            "\x1B[38;2;{0};{0};0m{1}\x1B[0m",
-            brightness, character
+            // "\x1B[38;2;{0};{0};0m{1}\x1B[0m",
+            // "\x1B[38;2;{0};{0};0m{1}\x1B[0m",
+            "\x1B[38;2;{0}m{1}{1}\x1B[0m",
+            colour, character
         ));
     }
-    print!("\x1B[2J\x1B[1;1H{}", lights.join(""));
+    print!(
+        "\x1B[2J\x1B[1;1H{}\n{}",
+        lights.join(""),
+        lights.join(""),
+        // lights.join(""),
+    );
     // print!("{}\n", lights.join(""));
 }
 
