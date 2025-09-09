@@ -12,7 +12,7 @@ use ringbuf::traits::*;
 const NUM_BINS: usize = 88;
 const MIN_FREQ: f32 = 30.0;
 const MAX_FREQ: f32 = 4200.0;
-const FADE: f32 = 0.8;
+const FADE: f32 = 0.99;
 
 const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
@@ -60,10 +60,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // turn off the cursor
     print!("\x1B[?25l");
 
+    let sample_rate = stream_config.sample_rate.0 as u32;
+
     // wait for buffer to fill
     thread::sleep(Duration::from_millis(100));
     loop {
-        thread::sleep(Duration::from_millis(8));
+        thread::sleep(Duration::from_millis(4));
         let mut samples = [0.0f32; SAMPLE_SIZE];
         if let Ok(buffer) = consumer_buffer.lock() {
             let _samples_read = buffer.peek_slice(&mut samples);
@@ -71,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let hann_window = hann_window(&samples);
         let spectrum = samples_fft_to_spectrum(
             &hann_window,
-            stream_config.sample_rate.0 as u32,
+            sample_rate,
             FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
             Some(&divide_by_N_sqrt),
         )?;
@@ -98,7 +100,8 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
 
     let black_keys = [1, 4, 6, 9, 11];
     for (i, &magnitude) in bins.iter().enumerate() {
-        let key_colour: KeyColour = if black_keys.contains(&(i % 12)) {
+        let note_index = key_number_to_index(i + 1);
+        let key_colour: KeyColour = if black_keys.contains(&note_index) {
             KeyColour::Black
         } else {
             KeyColour::White
@@ -110,22 +113,23 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
         }
 
         let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
+        // let brightness = 255.0;
         // let character = "●";
         let character = "█";
         // let character = "■";
 
         let colour = match key_colour {
             KeyColour::Black => {
-                format!("{0};0;0", brightness)
+                format!("0;{0};{1}", brightness / 2, brightness / 2)
             }
             KeyColour::White => {
-                format!("0;{0};0", brightness)
+                format!("{0};{0};{0}", brightness)
             }
         };
         lights.push(format!(
             // "\x1B[38;2;{0};{0};0m{1}\x1B[0m",
             // "\x1B[38;2;{0};{0};0m{1}\x1B[0m",
-            "\x1B[38;2;{0}m{1}{1}\x1B[0m",
+            "\x1B[38;2;{0}m{1}\x1B[0m",
             colour, character
         ));
     }
@@ -146,6 +150,18 @@ fn frequency_to_key_number(frequency: f32) -> f32 {
 fn frequency_to_nearest_key(frequency: f32) -> usize {
     let key = (frequency_to_key_number(frequency) - 0.5).ceil() as usize;
     key - 1
+}
+
+fn key_number_to_index(key_number: usize) -> usize {
+    let key_index = key_number - 1; // Convert to 0-based index
+    let note_index = if key_index < 3 {
+        // A0, A#0, B0
+        key_index
+    } else {
+        // C1 and beyond
+        (key_index - 3) % 12 + 3
+    };
+    note_index % 12
 }
 
 #[allow(dead_code)]
