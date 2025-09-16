@@ -1,0 +1,13 @@
+[package]
+name = "lights"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cpal = "0.16.0"
+rustfft = "6.4.0"
+terminal_size = "0.3.0"
+ctrlc = "3.4.4"
+spectrum-analyzer = "1.7.0" # Hypothetical crate for spectrum analysis
+rtrb = "0.3.2"
+ringbuf = "0.4.8"

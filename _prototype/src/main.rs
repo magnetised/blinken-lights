@@ -1,42 +1,26 @@
+use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-
-use std::sync::{Arc, Mutex};
-
-use spectrum_analyzer::scaling::{
-    combined, divide_by_N, divide_by_N_sqrt, scale_20_times_log10, scale_to_zero_to_one,
-};
+use spectrum_analyzer::scaling::divide_by_N_sqrt;
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{FrequencyLimit, FrequencySpectrum, samples_fft_to_spectrum};
+use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit, FrequencySpectrum};
 
 use ringbuf::traits::*;
 
-use smart_leds::{RGB8, SmartLedsWrite};
-// use synthrs::filter::{convolve, cutoff_from_frequency, lowpass_filter};
-// use synthrs::synthesizer::quantize_samples;
-use ws281x_rpi::Ws2812Rpi;
+const NUM_BINS: usize = 88;
+const MIN_FREQ: f32 = 30.0;
+const MAX_FREQ: f32 = 4200.0;
+const FADE: f32 = 0.99;
 
-mod leds;
-mod spectrum;
-
-pub const NUM_BINS: usize = 88;
 const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
-const MIN_FREQ: f32 = 30.0;
-const MAX_FREQ: f32 = 3200.0;
 
 enum KeyColour {
     White,
     Black,
 }
-
-const FADE: f32 = 0.9;
-const PIN: i32 = 10;
-// const NUM_LEDS: usize = 144;
-const NUM_LEDS: usize = NUM_BINS;
-// const DELAY: time::Duration = time::Duration::from_millis(600);
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ringbuf = ringbuf::HeapRb::<f32>::new(RINGBUFFER_SIZE);
@@ -56,19 +40,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut stream_config: cpal::StreamConfig = config.into();
 
-    stream_config.buffer_size = cpal::BufferSize::Fixed(1024 as u32);
+    stream_config.buffer_size = cpal::BufferSize::Fixed(256 as u32);
 
     let mut peak_magnitudes = vec![0.0; NUM_BINS];
-
-    // // GPIO Pin 10 is SPI
-    // // Other modes and PINs are available depending on the Raspberry Pi revision
-    // // Additional OS configuration might be needed for any mode.
-    // // Check https://github.com/jgarff/rpi_ws281x for more information.
-    //
-    let mut ws = Ws2812Rpi::new(NUM_LEDS as i32, PIN).unwrap();
-    //
-    // let mut data: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
-    // let empty: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
 
     let stream = device.build_input_stream(
         &stream_config,
@@ -88,7 +62,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let sample_rate = stream_config.sample_rate.0 as u32;
 
-    // let lowpass = lowpass_filter(cutoff_from_frequency(6000.0, 44_100), 0.01);
     // wait for buffer to fill
     thread::sleep(Duration::from_millis(100));
     loop {
@@ -97,57 +70,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Ok(buffer) = consumer_buffer.lock() {
             let _samples_read = buffer.peek_slice(&mut samples);
         }
-        // let vec_f64_1: Vec<f64> = samples.iter().map(|&x| x as f64).collect();
-        // let lowpass_samples = quantize_samples::<f32>(&convolve(&lowpass, &vec_f64_1));
         let hann_window = hann_window(&samples);
-        let fncs = combined(&[&scale_20_times_log10, &scale_to_zero_to_one]);
         let spectrum = samples_fft_to_spectrum(
             &hann_window,
             sample_rate,
             FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
-            Some(&fncs),
+            Some(&divide_by_N_sqrt),
         )?;
-        let new_bins = spectrum::bin_magnitudes(spectrum);
-        // visualize_bins(new_bins, &mut peak_magnitudes);
-        visualize_bins_led(&mut ws, new_bins, &mut peak_magnitudes);
-        //     ws.write(data.iter().cloned()).unwrap();
+        let new_bins = bin_magnitudes(spectrum);
+        visualize_bins(new_bins, &mut peak_magnitudes);
     }
-    // if let Ok(spectrum_consumer) = spectrum::start() {
-    //     thread::sleep(Duration::from_millis(100));
-    //     let mut peak_magnitudes = vec![0.0; spectrum::NUM_BINS];
-    //     loop {
-    //         thread::sleep(Duration::from_millis(4));
-    //         let new_bins = &spectrum_consumer.read();
-    //         visualize_bins(new_bins, &mut peak_magnitudes);
-    //     }
-    // }
 }
 
-fn visualize_bins_led(ws: &mut Ws2812Rpi, bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
-    let mut lights: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
-    const black_keys: [usize; 5] = [1, 4, 6, 9, 11];
-    // let mut data: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
-    for (i, &magnitude) in bins.iter().enumerate() {
-        let note_index = key_number_to_index(i + 1);
-        let key_colour: KeyColour = if black_keys.contains(&note_index) {
-            KeyColour::Black
-        } else {
-            KeyColour::White
-        };
-        if magnitude > peak_magnitudes[i] {
-            peak_magnitudes[i] = magnitude;
-        } else {
-            peak_magnitudes[i] *= FADE;
+fn bin_magnitudes(spectrum: FrequencySpectrum) -> Vec<f32> {
+    let mut bins = vec![0.0; NUM_BINS];
+
+    for (freq, value) in spectrum.data().iter() {
+        let bin_index = frequency_to_nearest_key(freq.val());
+        if bin_index < NUM_BINS {
+            bins[bin_index] += value.val();
         }
-        let brightness = (peak_magnitudes[i] * 32.0).min(255.0) as u8;
-        lights[i].r = brightness;
-        // lights[i].g = brightness;
-        lights[i].b = brightness / 8;
     }
-    ws.write(lights.iter().cloned()).unwrap();
+
+    bins
 }
+
 fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
-    let mut lights: Vec<String> = Vec::with_capacity(spectrum::NUM_BINS);
+    let mut lights: Vec<String> = Vec::with_capacity(NUM_BINS);
 
     let black_keys = [1, 4, 6, 9, 11];
     for (i, &magnitude) in bins.iter().enumerate() {
@@ -184,9 +133,23 @@ fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
             colour, character
         ));
     }
-    // lights.join(""),
-    print!("\x1B[2J\x1B[1;1H{}\n{}", lights.join(""), lights.join(""),);
+    print!(
+        "\x1B[2J\x1B[1;1H{}\n{}",
+        lights.join(""),
+        lights.join(""),
+        // lights.join(""),
+    );
     // print!("{}\n", lights.join(""));
+}
+
+fn frequency_to_key_number(frequency: f32) -> f32 {
+    12.0 * (frequency / 440.0).log2() + 49.0
+}
+
+// Function to get the nearest integer key number
+fn frequency_to_nearest_key(frequency: f32) -> usize {
+    let key = (frequency_to_key_number(frequency) - 0.5).ceil() as usize;
+    key - 1
 }
 
 fn key_number_to_index(key_number: usize) -> usize {
@@ -199,4 +162,37 @@ fn key_number_to_index(key_number: usize) -> usize {
         (key_index - 3) % 12 + 3
     };
     note_index % 12
+}
+
+#[allow(dead_code)]
+fn key_number_to_name(key_number: usize) -> String {
+    if key_number < 1 || key_number > 88 {
+        return "Out of range".to_string();
+    }
+
+    // Piano starts at A0 (key 1), A4 is key 49
+    let note_names = [
+        "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#",
+    ];
+    let key_index = key_number - 1; // Convert to 0-based index
+
+    // Calculate octave and note
+    let octave = if key_index < 3 {
+        // A0, A#0, B0
+        0
+    } else {
+        // C1 starts at key 4 (index 3)
+        (key_index - 3) / 12 + 1
+    };
+
+    let note_index = if key_index < 3 {
+        // A0, A#0, B0
+        key_index
+    } else {
+        // C1 and beyond
+        (key_index - 3) % 12 + 3
+    };
+
+    let note_index = note_index % 12;
+    format!("{}{}", note_names[note_index], octave)
 }
