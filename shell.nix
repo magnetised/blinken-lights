@@ -132,20 +132,12 @@ mkShell {
     alsa-utils
     alsa-tools
     rust-analyzer
+    libclang
+    libllvm
   ];
   # https://nixos.wiki/wiki/Development_environment_with_nix-shell
   # NIX_ENFORCE_PURITY lets me cc things
-  shellHook = ''
-    # export PATH="$PWD/node_modules/.bin/:$PATH"
-
-    # exec env NIX_ENFORCE_PURITY=0 fish -c 'exec tmux -L $(basename $(pwd)) new -A'
-  '';
-  PRISMA_MIGRATION_ENGINE_BINARY = "${pkgs.prisma-engines}/bin/migration-engine";
-  PRISMA_SCHEMA_ENGINE_BINARY = "${pkgs.prisma-engines}/bin/schema-engine";
-  PRISMA_QUERY_ENGINE_BINARY = "${pkgs.prisma-engines}/bin/query-engine";
-  PRISMA_QUERY_ENGINE_LIBRARY = "${pkgs.prisma-engines}/lib/libquery_engine.node";
-  PRISMA_INTROSPECTION_ENGINE_BINARY = "${prisma-engines}/bin/introspection-engine";
-  PRISMA_FMT_BINARY = "${pkgs.prisma-engines}/bin/prisma-fmt";
   GEMINI_API_KEY = "AIzaSyAXGmw12owFCCwmvBr-RzsE3eUuMb5Px_A";
+  LIBCLANG_PATH = "${pkgs.llvmPackages_16.libclang.lib}/lib";
 
 }

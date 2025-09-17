@@ -4,13 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-smart-leds = "0.3.0"
-ws281x-rpi = "0.0.1"
+ws281x-rpi = { version = "0.0.1", optional = true }
+smart-leds = { version = "0.4.0", optional = true }
 cpal = "0.16.0"
 rustfft = "6.4.0"
 spectrum-analyzer = "1.7.0"
 ringbuf = "0.4.8"
 
-[dependencies.synthrs]
-git = "https://github.com/gyng/synthrs"
-rev = "77e062f3e40304dd2c3611d70ece6a0e4eaf9750"
+[features]
+leds = ["smart-leds", "ws281x-rpi"]

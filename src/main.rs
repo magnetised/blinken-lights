@@ -13,9 +13,11 @@ use spectrum_analyzer::{FrequencyLimit, FrequencySpectrum, samples_fft_to_spectr
 
 use ringbuf::traits::*;
 
+#[cfg(feature = "leds")]
 use smart_leds::{RGB8, SmartLedsWrite};
 // use synthrs::filter::{convolve, cutoff_from_frequency, lowpass_filter};
 // use synthrs::synthesizer::quantize_samples;
+#[cfg(feature = "leds")]
 use ws281x_rpi::Ws2812Rpi;
 
 mod leds;
@@ -38,6 +40,9 @@ const PIN: i32 = 10;
 const NUM_LEDS: usize = NUM_BINS;
 // const DELAY: time::Duration = time::Duration::from_millis(600);
 
+const LEDS: bool = false;
+
+const BLACK_KEYS: [usize; 5] = [1, 4, 6, 9, 11];
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ringbuf = ringbuf::HeapRb::<f32>::new(RINGBUFFER_SIZE);
 
@@ -50,6 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let device = host
         .default_input_device()
         .expect("no input device available");
+
     let config = device
         .default_input_config()
         .expect("no default input config");
@@ -60,12 +66,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut peak_magnitudes = vec![0.0; NUM_BINS];
 
+    #[cfg(feature = "leds")]
+    let mut ws = Ws2812Rpi::new(NUM_LEDS as i32, PIN).unwrap();
     // // GPIO Pin 10 is SPI
     // // Other modes and PINs are available depending on the Raspberry Pi revision
     // // Additional OS configuration might be needed for any mode.
     // // Check https://github.com/jgarff/rpi_ws281x for more information.
     //
-    let mut ws = Ws2812Rpi::new(NUM_LEDS as i32, PIN).unwrap();
     //
     // let mut data: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
     // let empty: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
@@ -108,8 +115,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Some(&fncs),
         )?;
         let new_bins = spectrum::bin_magnitudes(spectrum);
-        // visualize_bins(new_bins, &mut peak_magnitudes);
+
+        #[cfg(feature = "leds")]
         visualize_bins_led(&mut ws, new_bins, &mut peak_magnitudes);
+
+        #[cfg(not(feature = "leds"))]
+        visualize_bins(new_bins, &mut peak_magnitudes);
+
         //     ws.write(data.iter().cloned()).unwrap();
     }
     // if let Ok(spectrum_consumer) = spectrum::start() {
@@ -123,13 +135,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // }
 }
 
+#[cfg(feature = "leds")]
 fn visualize_bins_led(ws: &mut Ws2812Rpi, bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
     let mut lights: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
-    const black_keys: [usize; 5] = [1, 4, 6, 9, 11];
     // let mut data: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
     for (i, &magnitude) in bins.iter().enumerate() {
         let note_index = key_number_to_index(i + 1);
-        let key_colour: KeyColour = if black_keys.contains(&note_index) {
+        let _key_colour: KeyColour = if BLACK_KEYS.contains(&note_index) {
             KeyColour::Black
         } else {
             KeyColour::White
@@ -146,6 +158,8 @@ fn visualize_bins_led(ws: &mut Ws2812Rpi, bins: Vec<f32>, peak_magnitudes: &mut 
     }
     ws.write(lights.iter().cloned()).unwrap();
 }
+
+#[cfg(not(feature = "leds"))]
 fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
     let mut lights: Vec<String> = Vec::with_capacity(spectrum::NUM_BINS);
 

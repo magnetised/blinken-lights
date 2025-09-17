@@ -1,4 +1,6 @@
+#[cfg(feature = "leds")]
 use smart_leds::{RGB8, SmartLedsWrite};
+#[cfg(feature = "leds")]
 use ws281x_rpi::Ws2812Rpi;
 
 fn test() {
