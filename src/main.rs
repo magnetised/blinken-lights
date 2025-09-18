@@ -9,19 +9,13 @@ use spectrum_analyzer::scaling::{
     combined, divide_by_N, divide_by_N_sqrt, scale_20_times_log10, scale_to_zero_to_one,
 };
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{FrequencyLimit, FrequencySpectrum, samples_fft_to_spectrum};
+use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum};
 
 use ringbuf::traits::*;
 
-// #[cfg(feature = "leds")]
-// use smart_leds::{RGB8, SmartLedsWrite};
-// use synthrs::filter::{convolve, cutoff_from_frequency, lowpass_filter};
-// use synthrs::synthesizer::quantize_samples;
-// #[cfg(feature = "leds")]
-// use ws281x_rpi::Ws2812Rpi;
-
 mod display;
 mod leds;
+mod piano;
 mod spectrum;
 mod terminal;
 
@@ -31,7 +25,7 @@ pub const NUM_BINS: usize = 88;
 const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
 const MIN_FREQ: f32 = 30.0;
-const MAX_FREQ: f32 = 3200.0;
+const MAX_FREQ: f32 = 4200.0;
 
 enum KeyColour {
     White,
@@ -118,7 +112,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
             Some(&divide_by_N_sqrt),
         )?;
-        let new_bins = spectrum::bin_magnitudes(spectrum);
+        let new_bins = piano::bin_magnitudes(spectrum);
 
         // #[cfg(feature = "leds")]
         // visualize_bins_led(&mut ws, new_bins, &mut peak_magnitudes);
@@ -148,11 +142,3 @@ fn display_impl() -> impl display::Display {
 fn display_impl() -> impl display::Display {
     terminal::Terminal::new()
 }
-
-// fn display_impl() -> Box<dyn display::Display> {
-//     if cfg!(feature = "leds") {
-//         Box::new(leds::LEDs::new())
-//     } else {
-//         Box::new(terminal::Terminal::new())
-//     }
-// }

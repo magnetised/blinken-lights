@@ -123,6 +123,7 @@ pub fn bin_magnitudes(spectrum: FrequencySpectrum) -> Vec<f32> {
 
     bins
 }
+
 // Function to get the nearest integer key number
 fn frequency_to_nearest_key(frequency: f32) -> (usize, f32) {
     let key_position = frequency_to_key_number(frequency);
@@ -162,7 +163,6 @@ pub fn key_number_to_index(key_number: usize) -> usize {
     };
     note_index % 12
 }
-
 // let piano_frequencies: Vec<f64> = vec![
 // 1 27.5
 // 2 29.1352
