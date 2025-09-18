@@ -24,13 +24,13 @@ impl LEDs {
     }
     fn white_key(&mut self, l: usize, brightness: u8) {
         self.data[l].r = brightness;
-        // lights[l].g = brightness;
+        self.data[l].g = 0;
         self.data[l].b = brightness / 8;
     }
     fn black_key(&mut self, l: usize, brightness: u8) {
         self.data[l].r = brightness;
         self.data[l].g = brightness / 8;
-        // self.data[l].b = brightness / 8;
+        self.data[l].b = 0;
     }
 }
 
