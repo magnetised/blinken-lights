@@ -25,6 +25,8 @@ mod leds;
 mod spectrum;
 mod terminal;
 
+use crate::display::Display;
+
 pub const NUM_BINS: usize = 88;
 const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
@@ -137,77 +139,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // }
 }
 
-fn display_impl() -> Box<dyn display::Display> {
-    if cfg!(feature = "leds") {
-        Box::new(leds::LEDs::new())
-    } else {
-        Box::new(terminal::Terminal::new())
-    }
+#[cfg(feature = "leds")]
+fn display_impl() -> impl display::Display {
+    leds::LEDs::new()
 }
-// #[cfg(feature = "leds")]
-// fn visualize_bins_led(ws: &mut Ws2812Rpi, bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
-//     let mut lights: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
-//     // let mut data: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
-//     for (i, &magnitude) in bins.iter().enumerate() {
-//         let note_index = key_number_to_index(i + 1);
-//         let _key_colour: KeyColour = if BLACK_KEYS.contains(&note_index) {
-//             KeyColour::Black
-//         } else {
-//             KeyColour::White
-//         };
-//         if magnitude > peak_magnitudes[i] {
-//             peak_magnitudes[i] = magnitude;
-//         } else {
-//             peak_magnitudes[i] *= FADE;
-//         }
-//         let brightness = (peak_magnitudes[i] * 32.0).min(255.0) as u8;
-//         lights[i].r = brightness;
-//         // lights[i].g = brightness;
-//         lights[i].b = brightness / 8;
-//     }
-//     ws.write(lights.iter().cloned()).unwrap();
-// }
 
-// #[cfg(not(feature = "leds"))]
-// fn visualize_bins(bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
-//     let mut lights: Vec<String> = Vec::with_capacity(spectrum::NUM_BINS);
-//
-//     let black_keys = [1, 4, 6, 9, 11];
-//     for (i, &magnitude) in bins.iter().enumerate() {
-//         let note_index = key_number_to_index(i + 1);
-//         let key_colour: KeyColour = if black_keys.contains(&note_index) {
-//             KeyColour::Black
-//         } else {
-//             KeyColour::White
-//         };
-//         if magnitude > peak_magnitudes[i] {
-//             peak_magnitudes[i] = magnitude;
-//         } else {
-//             peak_magnitudes[i] *= FADE;
-//         }
-//
-//         let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
-//         // let brightness = 255.0;
-//         // let character = "●";
-//         let character = "█";
-//         // let character = "■";
-//
-//         let colour = match key_colour {
-//             KeyColour::Black => {
-//                 format!("0;{0};{1}", brightness / 2, brightness / 2)
-//             }
-//             KeyColour::White => {
-//                 format!("{0};{0};{0}", brightness)
-//             }
-//         };
-//         lights.push(format!(
-//             // "\x1B[38;2;{0};{0};0m{1}\x1B[0m",
-//             // "\x1B[38;2;{0};{0};0m{1}\x1B[0m",
-//             "\x1B[38;2;{0}m{1}\x1B[0m",
-//             colour, character
-//         ));
+#[cfg(not(feature = "leds"))]
+fn display_impl() -> impl display::Display {
+    terminal::Terminal::new()
+}
+
+// fn display_impl() -> Box<dyn display::Display> {
+//     if cfg!(feature = "leds") {
+//         Box::new(leds::LEDs::new())
+//     } else {
+//         Box::new(terminal::Terminal::new())
 //     }
-//     // lights.join(""),
-//     print!("\x1B[2J\x1B[1;1H{}\n{}", lights.join(""), lights.join(""),);
-//     // print!("{}\n", lights.join(""));
 // }
