@@ -688,11 +688,11 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "smart-leds"
-version = "0.4.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66df34e571fa9993fa6f99131a374d58ca3d694b75f9baac93458fe0d6057bf0"
+checksum = "ab0a30e934e60850bfc020d4c2727cc8a3635371f6af2cb3f55f36f0134ed080"
 dependencies = [
- "smart-leds-trait 0.3.1",
+ "smart-leds-trait",
 ]
 
 [[package]]
@@ -700,15 +700,6 @@ name = "smart-leds-trait"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebf6d833fa93f16a1c1874e62c2aebe8567e5bdd436d59bf543ed258b6f7a8e3"
-dependencies = [
- "rgb",
-]
-
-[[package]]
-name = "smart-leds-trait"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edeb89c73244414bb0568611690dd095b2358b3fda5bae65ad784806cca00157"
 dependencies = [
  "rgb",
 ]
@@ -1093,5 +1084,5 @@ checksum = "d768fe61b40787b95662aece079d7477f5d9c3787a717aade53ca89f4c4ada3a"
 dependencies = [
  "bindgen",
  "cc",
- "smart-leds-trait 0.2.1",
+ "smart-leds-trait",
 ]

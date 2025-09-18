@@ -4,12 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ws281x-rpi = { version = "0.0.1", optional = true }
-smart-leds = { version = "0.4.0", optional = true }
+ws281x-rpi = { version = "0.0.1" }
+smart-leds = { version = "0.2.0" }
 cpal = "0.16.0"
 rustfft = "6.4.0"
 spectrum-analyzer = "1.7.0"
 ringbuf = "0.4.8"
+# smart-leds-trait = "0.3.1"
 
 [features]
-leds = ["smart-leds", "ws281x-rpi"]
+leds = []

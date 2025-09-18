@@ -13,6 +13,12 @@ const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
 const MIN_FREQ: f32 = 30.0;
 const MAX_FREQ: f32 = 4200.0;
+pub const BLACK_KEYS: [usize; 5] = [1, 4, 6, 9, 11];
+
+pub enum KeyColour {
+    White,
+    Black,
+}
 
 // struct with ref to consumer side of ring buffer
 // plus audio info like sammple_rate
@@ -143,6 +149,18 @@ fn normal_decay(x: f32, sigma: f32) -> f32 {
     let gaussian = (-0.5 * (x / sigma).powi(2)).exp();
     // Normalize so that f(0) = 1
     gaussian / ((-0.5 * (0.0 / sigma).powi(2)).exp())
+}
+
+pub fn key_number_to_index(key_number: usize) -> usize {
+    let key_index = key_number - 1; // Convert to 0-based index
+    let note_index = if key_index < 3 {
+        // A0, A#0, B0
+        key_index
+    } else {
+        // C1 and beyond
+        (key_index - 3) % 12 + 3
+    };
+    note_index % 12
 }
 
 // let piano_frequencies: Vec<f64> = vec![
