@@ -1,9 +1,9 @@
 use crate::display;
 
-use crate::spectrum::{KeyColour, NUM_BINS, key_number_to_index};
+use crate::spectrum::NUM_BINS;
 
+use crate::piano::{KeyColour, key_colour};
 const FADE: f32 = 0.9;
-const BLACK_KEYS: [usize; 5] = [1, 4, 6, 9, 11];
 
 pub struct Terminal {}
 
@@ -12,17 +12,13 @@ impl Terminal {
         Terminal {}
     }
 }
+
 impl display::Display for Terminal {
     fn visualize_bins(&mut self, bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
         let mut lights: Vec<String> = Vec::with_capacity(NUM_BINS);
 
         for (i, &magnitude) in bins.iter().enumerate() {
-            let note_index = key_number_to_index(i + 1);
-            let key_colour: KeyColour = if BLACK_KEYS.contains(&note_index) {
-                KeyColour::Black
-            } else {
-                KeyColour::White
-            };
+            let key_colour = key_colour(i + 1);
             if magnitude > peak_magnitudes[i] {
                 peak_magnitudes[i] = magnitude;
             } else {
