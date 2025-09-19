@@ -16,15 +16,16 @@ use ringbuf::traits::*;
 mod display;
 mod leds;
 mod piano;
-// mod spectrum;
 mod terminal;
 
 use crate::display::Display;
 
 pub const NUM_BINS: usize = 88;
+
 const SAMPLE_SIZE: usize = 8192;
+// const SAMPLE_SIZE: usize = 16384;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
-const MIN_FREQ: f32 = 25.0;
+const MIN_FREQ: f32 = 0.0;
 const MAX_FREQ: f32 = 4200.0;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -79,16 +80,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // let vec_f64_1: Vec<f64> = samples.iter().map(|&x| x as f64).collect();
         // let lowpass_samples = quantize_samples::<f32>(&convolve(&lowpass, &vec_f64_1));
         let hann_window = hann_window(&samples);
-        // let fncs = combined(&[&scale_20_times_log10, &scale_to_zero_to_one]);
+        let fncs = combined(&[
+            &scale_20_times_log10,
+            // &divide_by_N_sqrt,
+            &scale_to_zero_to_one,
+        ]);
         let spectrum = samples_fft_to_spectrum(
             &hann_window,
             sample_rate,
             FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
-            Some(&divide_by_N_sqrt),
+            Some(&fncs),
         )?;
         let new_bins = piano::bin_magnitudes(spectrum);
 
-        //
         display.visualize_bins(new_bins, &mut peak_magnitudes);
     }
     // if let Ok(spectrum_consumer) = spectrum::start() {

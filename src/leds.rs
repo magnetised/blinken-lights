@@ -7,13 +7,10 @@ use crate::piano::{KeyColour, key_colour};
 use angular_units::Deg;
 use prisma::Hsi;
 
-const FADE: f32 = 0.85;
+const FADE: f32 = 0.95;
 const NUM_LEDS: usize = 144;
 const PIN: i32 = 10;
 const BRIGHTNESS: f32 = 64.0;
-
-// const WHITE_COLOUR: Hsi<f32> = Hsi::new(Deg(50.0), 1.0, 1.0);
-// const BLACK_COLOUR: Hsi<f32> = Hsi::new(1.0, 1.0, 1.0);
 
 pub struct LEDs {
     leds: Ws2812Rpi,
@@ -28,8 +25,8 @@ impl LEDs {
         LEDs {
             leds: ws,
             data: vec![RGB8::default(); NUM_LEDS],
-            white: Hsi::new(Deg(10.0), 1.0, 1.0),
-            black: Hsi::new(Deg(50.0), 1.0, 1.0),
+            white: Hsi::new(Deg(1.0), 1.0, 1.0),
+            black: Hsi::new(Deg(350.0), 1.0, 1.0),
         }
     }
     fn white_key(&mut self, l: usize, brightness: f32) {
@@ -50,7 +47,8 @@ impl LEDs {
 
 impl display::Display for LEDs {
     fn visualize_bins(&mut self, bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
-        let mut l: usize = 0;
+        // offset by 2 because we only use 140 out of the 144 leds
+        let mut l: usize = 2;
         for (i, &magnitude) in bins.iter().enumerate() {
             if l >= NUM_LEDS {
                 panic!("led index out of bounds {}", l);
@@ -74,6 +72,11 @@ impl display::Display for LEDs {
                 }
             }
         }
-        smart_leds::SmartLedsWrite::write(&mut self.leds, self.data.iter().copied()).unwrap();
+        smart_leds::SmartLedsWrite::write(
+            &mut self.leds,
+            // smart_leds::gamma(self.data.iter().copied()),
+            self.data.iter().copied(),
+        )
+        .unwrap();
     }
 }

@@ -1,6 +1,6 @@
 use spectrum_analyzer::FrequencySpectrum;
 
-const SIGMA: f32 = 0.1;
+const SIGMA: f32 = 0.01;
 
 // 1-88
 type KeyIndex = usize;
@@ -52,7 +52,8 @@ fn frequency_to_nearest_key(frequency: f32) -> (KeyIndex, f32) {
     let key_position = frequency_to_key_number(frequency);
     let key = key_position.round() as usize;
     let diff = key as f32 - key_position;
-    let decay = normal_decay(diff, SIGMA);
+    // let decay = normal_decay(diff, SIGMA);
+    let decay = exponential_decay(diff);
     (key, decay)
 }
 
@@ -65,6 +66,13 @@ fn key_number_to_frequency(key: usize) -> f32 {
     (440.0 * 2.0_f64.powf((key as f64 - 49.0) / 12.0)) as f32
 }
 
+fn exponential_decay(x: f32) -> f32 {
+    const STEEPNESS: f32 = 50.0;
+    let x = x.clamp(0.0, 1.0);
+    (-STEEPNESS * x).exp()
+}
+
+#[allow(dead_code)]
 fn normal_decay(x: f32, sigma: f32) -> f32 {
     let x = x.clamp(0.0, 1.0);
     let gaussian = (-0.5 * (x / sigma).powi(2)).exp();
