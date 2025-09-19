@@ -20,15 +20,19 @@ mod terminal;
 
 use crate::display::Display;
 
-pub const NUM_BINS: usize = 88;
+pub const NUM_KEYS: usize = 88;
+// pub const NUM_BINS: usize = 88 - 27;
 
 const SAMPLE_SIZE: usize = 8192;
 // const SAMPLE_SIZE: usize = 16384;
+// const SAMPLE_SIZE: usize = 32768;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
-const MIN_FREQ: f32 = 0.0;
+const MIN_FREQ: f32 = 130.0;
 const MAX_FREQ: f32 = 4200.0;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let num_bins: usize = NUM_KEYS - piano::min_key();
+    println!("num_bins: {}", num_bins);
     let ringbuf = ringbuf::HeapRb::<f32>::new(RINGBUFFER_SIZE);
 
     let shared_buffer = Arc::new(Mutex::new(ringbuf));
@@ -49,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     stream_config.buffer_size = cpal::BufferSize::Fixed(1024 as u32);
 
-    let mut peak_magnitudes = vec![0.0; NUM_BINS];
+    let mut peak_magnitudes = vec![0.0; num_bins];
 
     let mut display = display_impl();
 
@@ -88,10 +92,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let spectrum = samples_fft_to_spectrum(
             &hann_window,
             sample_rate,
-            FrequencyLimit::Range(MIN_FREQ, MAX_FREQ),
+            FrequencyLimit::Range(piano::MIN_FREQUENCY, MAX_FREQ),
             Some(&fncs),
         )?;
-        let new_bins = piano::bin_magnitudes(spectrum);
+        let new_bins = piano::bin_magnitudes(spectrum, num_bins);
 
         display.visualize_bins(new_bins, &mut peak_magnitudes);
     }

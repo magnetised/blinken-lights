@@ -7,7 +7,7 @@ use crate::piano::{KeyColour, key_colour};
 use angular_units::Deg;
 use prisma::Hsi;
 
-const FADE: f32 = 0.95;
+const FADE: f32 = 0.75;
 const NUM_LEDS: usize = 144;
 const PIN: i32 = 10;
 const BRIGHTNESS: f32 = 64.0;
@@ -48,7 +48,7 @@ impl LEDs {
 impl display::Display for LEDs {
     fn visualize_bins(&mut self, bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
         // offset by 2 because we only use 140 out of the 144 leds
-        let mut l: usize = 2;
+        let mut l: usize = 5;
         for (i, &magnitude) in bins.iter().enumerate() {
             if l >= NUM_LEDS {
                 panic!("led index out of bounds {}", l);
@@ -64,10 +64,12 @@ impl display::Display for LEDs {
                 KeyColour::White => {
                     self.white_key(l, brightness);
                     self.white_key(l + 1, brightness);
-                    l = l + 2;
+                    self.white_key(l + 2, brightness);
+                    l = l + 3;
                 }
                 KeyColour::Black => {
                     self.black_key(l, brightness);
+                    // self.black_key(l + 1, brightness);
                     l = l + 1;
                 }
             }

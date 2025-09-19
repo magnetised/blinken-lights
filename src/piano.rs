@@ -1,6 +1,6 @@
 use spectrum_analyzer::FrequencySpectrum;
 
-const SIGMA: f32 = 0.01;
+pub const MIN_FREQUENCY: f32 = 120.0;
 
 // 1-88
 type KeyIndex = usize;
@@ -12,14 +12,19 @@ pub enum KeyColour {
     Black,
 }
 
-pub fn bin_magnitudes(spectrum: FrequencySpectrum) -> Vec<f32> {
-    let mut bins = vec![0.0; crate::NUM_BINS];
+pub fn min_key() -> usize {
+    frequency_to_key_number(MIN_FREQUENCY).round() as usize
+}
+
+pub fn bin_magnitudes(spectrum: FrequencySpectrum, num_bins: usize) -> Vec<f32> {
+    let mut bins = vec![0.0; num_bins];
+    let min_key = min_key();
 
     for (freq, value) in spectrum.data().iter() {
         let (key_number, decay) = frequency_to_nearest_key(freq.val());
-        let bin_index = (key_number - 1) as BinIndex;
+        let bin_index = (key_number - 1 - min_key) as BinIndex;
         if value.val() > 0.01 {
-            if bin_index < crate::NUM_BINS {
+            if bin_index < num_bins {
                 bins[bin_index] += decay * value.val();
             }
         }
@@ -67,7 +72,7 @@ fn key_number_to_frequency(key: usize) -> f32 {
 }
 
 fn exponential_decay(x: f32) -> f32 {
-    const STEEPNESS: f32 = 50.0;
+    const STEEPNESS: f32 = 20.0;
     let x = x.clamp(0.0, 1.0);
     (-STEEPNESS * x).exp()
 }
