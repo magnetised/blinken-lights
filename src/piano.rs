@@ -1,5 +1,7 @@
 use spectrum_analyzer::FrequencySpectrum;
 
+const SIGMA: f32 = 0.1;
+
 // 1-88
 type KeyIndex = usize;
 type BinIndex = usize;
@@ -16,8 +18,10 @@ pub fn bin_magnitudes(spectrum: FrequencySpectrum) -> Vec<f32> {
     for (freq, value) in spectrum.data().iter() {
         let (key_number, decay) = frequency_to_nearest_key(freq.val());
         let bin_index = (key_number - 1) as BinIndex;
-        if bin_index < crate::NUM_BINS {
-            bins[bin_index] += decay * value.val();
+        if value.val() > 0.01 {
+            if bin_index < crate::NUM_BINS {
+                bins[bin_index] += decay * value.val();
+            }
         }
     }
 
@@ -31,18 +35,8 @@ pub fn key_colour(key_number: KeyIndex) -> KeyColour {
     let position_in_octave = get_note_index_in_octave(key_number);
 
     match position_in_octave {
-        0 => KeyColour::White,  // C
-        1 => KeyColour::Black,  // C#
-        2 => KeyColour::White,  // D
-        3 => KeyColour::Black,  // D#
-        4 => KeyColour::White,  // E
-        5 => KeyColour::White,  // F
-        6 => KeyColour::Black,  // F#
-        7 => KeyColour::White,  // G
-        8 => KeyColour::Black,  // G#
-        9 => KeyColour::White,  // A
-        10 => KeyColour::Black, // A#
-        11 => KeyColour::White, // B
+        1 | 3 | 6 | 8 | 10 => KeyColour::Black,
+        p if p <= 11 => KeyColour::White,
         _ => unreachable!(),
     }
 }
@@ -58,7 +52,7 @@ fn frequency_to_nearest_key(frequency: f32) -> (KeyIndex, f32) {
     let key_position = frequency_to_key_number(frequency);
     let key = key_position.round() as usize;
     let diff = key as f32 - key_position;
-    let decay = normal_decay(diff, 0.3);
+    let decay = normal_decay(diff, SIGMA);
     (key, decay)
 }
 
@@ -66,6 +60,7 @@ fn frequency_to_key_number(frequency: f32) -> f32 {
     12.0 * (frequency / 440.0).log2() + 49.0
 }
 
+#[allow(dead_code)]
 fn key_number_to_frequency(key: usize) -> f32 {
     (440.0 * 2.0_f64.powf((key as f64 - 49.0) / 12.0)) as f32
 }
@@ -77,14 +72,12 @@ fn normal_decay(x: f32, sigma: f32) -> f32 {
     gaussian / ((-0.5 * (0.0 / sigma).powi(2)).exp())
 }
 
+#[allow(dead_code)]
 pub fn key_number_to_index(key_number: KeyIndex) -> usize {
-    let key_index = key_number - 1; // Convert to 0-based index
+    let key_index = key_number - 1;
     let note_index = if key_index < 3 {
-        // A0, A#0, B0
-        // key_index
         key_index
     } else {
-        // C1 and beyond
         (key_index - 3) % 12 + 3
     };
     note_index % 12

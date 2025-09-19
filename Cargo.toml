@@ -10,6 +10,8 @@ cpal = "0.16.0"
 rustfft = "6.4.0"
 spectrum-analyzer = "1.7.0"
 ringbuf = "0.4.8"
+prisma = "0.1.1"
+angular-units = "0.2.4"
 # smart-leds-trait = "0.3.1"
 
 [features]

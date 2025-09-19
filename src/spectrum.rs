@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 
 use spectrum_analyzer::scaling::divide_by_N_sqrt;
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{FrequencyLimit, FrequencySpectrum, samples_fft_to_spectrum};
+use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum};
 
 use crate::piano;
 use ringbuf::traits::*;

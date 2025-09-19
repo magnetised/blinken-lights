@@ -1,8 +1,7 @@
 use crate::display;
 
-use crate::spectrum::NUM_BINS;
-
 use crate::piano::{KeyColour, key_colour};
+
 const FADE: f32 = 0.9;
 
 pub struct Terminal {}
@@ -15,7 +14,7 @@ impl Terminal {
 
 impl display::Display for Terminal {
     fn visualize_bins(&mut self, bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
-        let mut lights: Vec<String> = Vec::with_capacity(NUM_BINS);
+        let mut lights: Vec<String> = Vec::with_capacity(bins.len());
 
         for (i, &magnitude) in bins.iter().enumerate() {
             let key_colour = key_colour(i + 1);

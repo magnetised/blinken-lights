@@ -16,7 +16,7 @@ use ringbuf::traits::*;
 mod display;
 mod leds;
 mod piano;
-mod spectrum;
+// mod spectrum;
 mod terminal;
 
 use crate::display::Display;
@@ -24,23 +24,9 @@ use crate::display::Display;
 pub const NUM_BINS: usize = 88;
 const SAMPLE_SIZE: usize = 8192;
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
-const MIN_FREQ: f32 = 30.0;
+const MIN_FREQ: f32 = 25.0;
 const MAX_FREQ: f32 = 4200.0;
 
-enum KeyColour {
-    White,
-    Black,
-}
-
-const FADE: f32 = 0.9;
-const PIN: i32 = 10;
-// const NUM_LEDS: usize = 144;
-const NUM_LEDS: usize = NUM_BINS;
-// const DELAY: time::Duration = time::Duration::from_millis(600);
-
-const LEDS: bool = false;
-
-const BLACK_KEYS: [usize; 5] = [1, 4, 6, 9, 11];
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ringbuf = ringbuf::HeapRb::<f32>::new(RINGBUFFER_SIZE);
 
@@ -64,16 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut peak_magnitudes = vec![0.0; NUM_BINS];
 
-    let mut display = display_impl(); // #[cfg(feature = "leds")]
-    // let mut ws = Ws2812Rpi::new(NUM_LEDS as i32, PIN).unwrap();
-    // // GPIO Pin 10 is SPI
-    // // Other modes and PINs are available depending on the Raspberry Pi revision
-    // // Additional OS configuration might be needed for any mode.
-    // // Check https://github.com/jgarff/rpi_ws281x for more information.
-    //
-    //
-    // let mut data: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
-    // let empty: [RGB8; NUM_LEDS] = [RGB8::default(); NUM_LEDS];
+    let mut display = display_impl();
 
     let stream = device.build_input_stream(
         &stream_config,
@@ -87,9 +64,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     )?;
 
     stream.play()?;
-
-    // turn off the cursor
-    print!("\x1B[?25l");
 
     let sample_rate = stream_config.sample_rate.0 as u32;
 
@@ -105,7 +79,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // let vec_f64_1: Vec<f64> = samples.iter().map(|&x| x as f64).collect();
         // let lowpass_samples = quantize_samples::<f32>(&convolve(&lowpass, &vec_f64_1));
         let hann_window = hann_window(&samples);
-        let fncs = combined(&[&divide_by_N_sqrt, &scale_to_zero_to_one]);
+        // let fncs = combined(&[&scale_20_times_log10, &scale_to_zero_to_one]);
         let spectrum = samples_fft_to_spectrum(
             &hann_window,
             sample_rate,
@@ -114,13 +88,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
         let new_bins = piano::bin_magnitudes(spectrum);
 
-        // #[cfg(feature = "leds")]
-        // visualize_bins_led(&mut ws, new_bins, &mut peak_magnitudes);
         //
-        // #[cfg(not(feature = "leds"))]
         display.visualize_bins(new_bins, &mut peak_magnitudes);
-
-        //     ws.write(data.iter().cloned()).unwrap();
     }
     // if let Ok(spectrum_consumer) = spectrum::start() {
     //     thread::sleep(Duration::from_millis(100));

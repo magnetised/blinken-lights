@@ -1,17 +1,25 @@
-use smart_leds::{Brightness, RGB8};
-// use smart_leds_trait::SmartLedsWrite;
+use smart_leds::RGB8;
 use ws281x_rpi::Ws2812Rpi;
 
 use crate::display;
 use crate::piano::{KeyColour, key_colour};
 
-const FADE: f32 = 0.9;
+use angular_units::Deg;
+use prisma::Hsi;
+
+const FADE: f32 = 0.85;
 const NUM_LEDS: usize = 144;
 const PIN: i32 = 10;
+const BRIGHTNESS: f32 = 64.0;
+
+// const WHITE_COLOUR: Hsi<f32> = Hsi::new(Deg(50.0), 1.0, 1.0);
+// const BLACK_COLOUR: Hsi<f32> = Hsi::new(1.0, 1.0, 1.0);
 
 pub struct LEDs {
     leds: Ws2812Rpi,
     data: Vec<RGB8>,
+    white: Hsi<f32>,
+    black: Hsi<f32>,
 }
 
 impl LEDs {
@@ -20,17 +28,23 @@ impl LEDs {
         LEDs {
             leds: ws,
             data: vec![RGB8::default(); NUM_LEDS],
+            white: Hsi::new(Deg(10.0), 1.0, 1.0),
+            black: Hsi::new(Deg(50.0), 1.0, 1.0),
         }
     }
-    fn white_key(&mut self, l: usize, brightness: u8) {
-        self.data[l].r = brightness;
-        self.data[l].g = 0;
-        self.data[l].b = brightness / 8;
+    fn white_key(&mut self, l: usize, brightness: f32) {
+        self.set_colour(l, self.white, brightness);
     }
-    fn black_key(&mut self, l: usize, brightness: u8) {
-        self.data[l].r = brightness;
-        self.data[l].g = brightness / 8;
-        self.data[l].b = 0;
+    fn black_key(&mut self, l: usize, brightness: f32) {
+        self.set_colour(l, self.black, brightness);
+    }
+    fn set_colour(&mut self, l: usize, src_colour: Hsi<f32>, brightness: f32) {
+        let mut colour = src_colour.clone();
+        colour.set_intensity(brightness.min(1.0));
+        let rgb = colour.to_rgb(prisma::HsiOutOfGamutMode::Clip);
+        self.data[l].r = (rgb.red() * 255.0).round() as u8;
+        self.data[l].g = (rgb.green() * 255.0).round() as u8;
+        self.data[l].b = (rgb.blue() * 255.0).round() as u8;
     }
 }
 
@@ -46,25 +60,16 @@ impl display::Display for LEDs {
             } else {
                 peak_magnitudes[i] *= FADE;
             }
-            let brightness = (peak_magnitudes[i] * 32.0).min(255.0) as u8;
+            // let brightness = (peak_magnitudes[i] * BRIGHTNESS).min(255.0) as u8;
+            let brightness = peak_magnitudes[i];
             match key_colour(i + 1) {
                 KeyColour::White => {
                     self.white_key(l, brightness);
                     self.white_key(l + 1, brightness);
-                    // self.data[l].r = brightness;
-                    // // lights[l].g = brightness;
-                    // self.data[l].b = brightness / 8;
-                    //
-                    // self.data[l + 1].r = brightness;
-                    // // lights[l].g = brightness;
-                    // self.data[l + 1].b = brightness / 8;
                     l = l + 2;
                 }
                 KeyColour::Black => {
                     self.black_key(l, brightness);
-                    // self.data[l].r = brightness;
-                    // self.data[l].g = brightness;
-                    // self.data[l].b = brightness / 8;
                     l = l + 1;
                 }
             }
