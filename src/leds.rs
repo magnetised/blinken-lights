@@ -7,7 +7,7 @@ use crate::piano::{KeyColour, key_colour};
 use angular_units::Deg;
 use prisma::Hsi;
 
-const FADE: f32 = 0.75;
+const FADE: f32 = 0.82;
 const NUM_LEDS: usize = 144;
 const PIN: i32 = 10;
 const BRIGHTNESS: f32 = 64.0;

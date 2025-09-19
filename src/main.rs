@@ -31,6 +31,7 @@ const MIN_FREQ: f32 = 130.0;
 const MAX_FREQ: f32 = 4200.0;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // let (tx, rx) = mpsc::channel();
     let num_bins: usize = NUM_KEYS - piano::min_key();
     println!("num_bins: {}", num_bins);
     let ringbuf = ringbuf::HeapRb::<f32>::new(RINGBUFFER_SIZE);
