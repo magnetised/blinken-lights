@@ -6,7 +6,10 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::sync::{mpsc, Arc, Mutex};
 
 use spectrum_analyzer::scaling::{
-    combined, divide_by_N, divide_by_N_sqrt, scale_20_times_log10, scale_to_zero_to_one,
+    combined,
+    // divide_by_N, divide_by_N_sqrt,
+    scale_20_times_log10,
+    scale_to_zero_to_one,
 };
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
@@ -20,12 +23,9 @@ mod terminal;
 
 use crate::display::Display;
 
-pub const NUM_KEYS: usize = 88;
-
 const SAMPLE_SIZE: usize = 2usize.pow(13);
 
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
-const MAX_FREQ: f32 = 4200.0;
 
 enum Ping {
     Audio,
@@ -34,7 +34,7 @@ enum Ping {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (tx, rx) = mpsc::channel();
-    let num_bins: usize = NUM_KEYS - piano::min_key();
+    let num_bins: usize = piano::num_keys();
     println!("num_bins: {}", num_bins);
     let ringbuf = ringbuf::HeapRb::<f32>::new(RINGBUFFER_SIZE);
 
@@ -71,13 +71,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         },
-        |err| eprintln!("an error occurred on stream: {}", err),
+        |err| panic!("an error occurred on stream: {}", err),
         None,
     )?;
 
     stream.play()?;
-
-    let sample_rate = stream_config.sample_rate.0 as u32;
 
     thread::spawn(move || {
         let mut last_ping: Option<Ping> = None;
@@ -94,7 +92,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         last_ping = Some(Ping::Timeout);
                     }
                     _none => {
-                        last_ping = Some(Ping::Audio);
+                        panic!("Received timeout ping before audio. Exiting");
                     }
                 },
                 Err(err) => {
@@ -103,15 +101,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     });
+
     thread::spawn(move || loop {
         thread::sleep(Duration::from_millis(500));
         if tx.send(Ping::Timeout).is_err() {
             panic!("Failed to send timeout ping!");
         }
     });
+
+    let sample_rate = stream_config.sample_rate.0 as u32;
+
     // let lowpass = lowpass_filter(cutoff_from_frequency(6000.0, 44_100), 0.01);
     // wait for buffer to fill
     thread::sleep(Duration::from_millis(100));
+
     loop {
         thread::sleep(Duration::from_millis(4));
         let mut samples = [0.0f32; SAMPLE_SIZE];
@@ -129,22 +132,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let spectrum = samples_fft_to_spectrum(
             &hann_window,
             sample_rate,
-            FrequencyLimit::Range(piano::MIN_FREQUENCY, MAX_FREQ),
+            FrequencyLimit::Range(piano::MIN_FREQUENCY, piano::MAX_FREQUENCY),
             Some(&fncs),
         )?;
         let new_bins = piano::bin_magnitudes(spectrum, num_bins);
 
         display.visualize_bins(new_bins, &mut peak_magnitudes);
     }
-    // if let Ok(spectrum_consumer) = spectrum::start() {
-    //     thread::sleep(Duration::from_millis(100));
-    //     let mut peak_magnitudes = vec![0.0; spectrum::NUM_BINS];
-    //     loop {
-    //         thread::sleep(Duration::from_millis(4));
-    //         let new_bins = &spectrum_consumer.read();
-    //         visualize_bins(new_bins, &mut peak_magnitudes);
-    //     }
-    // }
 }
 
 #[cfg(feature = "leds")]

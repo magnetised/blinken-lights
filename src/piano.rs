@@ -1,6 +1,8 @@
 use spectrum_analyzer::FrequencySpectrum;
 
+pub const NUM_KEYS: usize = 88;
 pub const MIN_FREQUENCY: f32 = 120.0;
+pub const MAX_FREQUENCY: f32 = 4200.0;
 
 // 1-88
 type KeyIndex = usize;
@@ -14,6 +16,10 @@ pub enum KeyColour {
 
 pub fn min_key() -> usize {
     frequency_to_key_number(MIN_FREQUENCY).round() as usize
+}
+
+pub fn num_keys() -> usize {
+    NUM_KEYS - min_key()
 }
 
 pub fn bin_magnitudes(spectrum: FrequencySpectrum, num_bins: usize) -> Vec<f32> {
@@ -34,7 +40,7 @@ pub fn bin_magnitudes(spectrum: FrequencySpectrum, num_bins: usize) -> Vec<f32> 
 }
 
 pub fn key_colour(key_number: KeyIndex) -> KeyColour {
-    if key_number < 1 {
+    if key_number < 1 || key_number > 88 {
         panic!("key number should be 1-88 inclusive");
     }
     let position_in_octave = get_note_index_in_octave(key_number);
