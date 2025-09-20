@@ -1,8 +1,8 @@
+#![allow(dead_code)]
+
 use crate::display;
 
-use crate::piano::{KeyColour, key_colour};
-
-const FADE: f32 = 0.9;
+use crate::piano::{key_colour, KeyColour};
 
 pub struct Terminal {}
 
@@ -13,7 +13,12 @@ impl Terminal {
 }
 
 impl display::Display for Terminal {
-    fn visualize_bins(&mut self, bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
+    fn visualize_bins(
+        &mut self,
+        bins: Vec<f32>,
+        peak_magnitudes: &mut Vec<f32>,
+        config: &display::DisplayConfig,
+    ) {
         let mut lights: Vec<String> = Vec::with_capacity(bins.len());
 
         for (i, &magnitude) in bins.iter().enumerate() {
@@ -21,10 +26,11 @@ impl display::Display for Terminal {
             if magnitude > peak_magnitudes[i] {
                 peak_magnitudes[i] = magnitude;
             } else {
-                peak_magnitudes[i] *= FADE;
+                peak_magnitudes[i] *= config.fade;
             }
 
-            let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
+            // let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
+            let brightness = peak_magnitudes[i];
             // let brightness = 255.0;
             // let character = "●";
             let character = "█";
@@ -32,10 +38,12 @@ impl display::Display for Terminal {
 
             let colour = match key_colour {
                 KeyColour::Black => {
-                    format!("0;{0};{1}", brightness / 2, brightness / 2)
+                    let (r, g, b) = config.black_colour(brightness);
+                    format!("{};{};{}", r, g, b)
                 }
                 KeyColour::White => {
-                    format!("{0};{0};{0}", brightness)
+                    let (r, g, b) = config.white_colour(brightness);
+                    format!("{};{};{}", r, g, b)
                 }
             };
             lights.push(format!(

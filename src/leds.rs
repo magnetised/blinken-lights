@@ -1,21 +1,16 @@
+#![allow(dead_code)]
 use smart_leds::RGB8;
 use ws281x_rpi::Ws2812Rpi;
 
 use crate::display;
 use crate::piano::{key_colour, KeyColour};
 
-use angular_units::Deg;
-use prisma::Hsi;
-
-const FADE: f32 = 0.82;
 const NUM_LEDS: usize = 144;
 const PIN: i32 = 10;
 
 pub struct LEDs {
     leds: Ws2812Rpi,
     data: Vec<RGB8>,
-    white: Hsi<f32>,
-    black: Hsi<f32>,
 }
 
 impl LEDs {
@@ -24,28 +19,23 @@ impl LEDs {
         LEDs {
             leds: ws,
             data: vec![RGB8::default(); NUM_LEDS],
-            white: Hsi::new(Deg(1.0), 1.0, 1.0),
-            black: Hsi::new(Deg(350.0), 1.0, 1.0),
         }
     }
-    fn white_key(&mut self, l: usize, brightness: f32) {
-        self.set_colour(l, self.white, brightness);
-    }
-    fn black_key(&mut self, l: usize, brightness: f32) {
-        self.set_colour(l, self.black, brightness);
-    }
-    fn set_colour(&mut self, l: usize, src_colour: Hsi<f32>, brightness: f32) {
-        let mut colour = src_colour.clone();
-        colour.set_intensity(brightness.min(1.0));
-        let rgb = colour.to_rgb(prisma::HsiOutOfGamutMode::Clip);
-        self.data[l].r = (rgb.red() * 255.0).round() as u8;
-        self.data[l].g = (rgb.green() * 255.0).round() as u8;
-        self.data[l].b = (rgb.blue() * 255.0).round() as u8;
+    fn set_colour(&mut self, l: usize, rgb: display::RGB) {
+        let (r, g, b) = rgb;
+        self.data[l].r = r;
+        self.data[l].g = g;
+        self.data[l].b = b;
     }
 }
 
 impl display::Display for LEDs {
-    fn visualize_bins(&mut self, bins: Vec<f32>, peak_magnitudes: &mut Vec<f32>) {
+    fn visualize_bins(
+        &mut self,
+        bins: Vec<f32>,
+        peak_magnitudes: &mut Vec<f32>,
+        config: &display::DisplayConfig,
+    ) {
         // offset because we don't use all the leds
         let mut l: usize = 5;
         for (i, &magnitude) in bins.iter().enumerate() {
@@ -55,18 +45,20 @@ impl display::Display for LEDs {
             if magnitude > peak_magnitudes[i] {
                 peak_magnitudes[i] = magnitude;
             } else {
-                peak_magnitudes[i] *= FADE;
+                peak_magnitudes[i] *= config.fade;
             }
             let brightness = peak_magnitudes[i];
             match key_colour(i + 1) {
                 KeyColour::White => {
-                    self.white_key(l, brightness);
-                    self.white_key(l + 1, brightness);
-                    self.white_key(l + 2, brightness);
+                    let rgb = config.white_colour(brightness);
+                    self.set_colour(l, rgb);
+                    self.set_colour(l + 1, rgb);
+                    self.set_colour(l + 2, rgb);
                     l = l + 3;
                 }
                 KeyColour::Black => {
-                    self.black_key(l, brightness);
+                    let rgb = config.black_colour(brightness);
+                    self.set_colour(l, rgb);
                     l = l + 1;
                 }
             }

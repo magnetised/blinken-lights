@@ -21,7 +21,7 @@ mod leds;
 mod piano;
 mod terminal;
 
-use crate::display::Display;
+use crate::display::{Display, DisplayConfig};
 
 const SAMPLE_SIZE: usize = 2usize.pow(13);
 
@@ -33,6 +33,7 @@ enum Ping {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let display_config = DisplayConfig::default();
     let (tx, rx) = mpsc::channel();
     let num_bins: usize = piano::num_keys();
     println!("num_bins: {}", num_bins);
@@ -137,7 +138,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
         let new_bins = piano::bin_magnitudes(spectrum, num_bins);
 
-        display.visualize_bins(new_bins, &mut peak_magnitudes);
+        display.visualize_bins(new_bins, &mut peak_magnitudes, &display_config);
     }
 }
 
