@@ -3,13 +3,13 @@ use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 
 use spectrum_analyzer::scaling::{
     combined, divide_by_N, divide_by_N_sqrt, scale_20_times_log10, scale_to_zero_to_one,
 };
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum};
+use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use ringbuf::traits::*;
 
@@ -21,17 +21,19 @@ mod terminal;
 use crate::display::Display;
 
 pub const NUM_KEYS: usize = 88;
-// pub const NUM_BINS: usize = 88 - 27;
 
-const SAMPLE_SIZE: usize = 8192;
-// const SAMPLE_SIZE: usize = 16384;
-// const SAMPLE_SIZE: usize = 32768;
+const SAMPLE_SIZE: usize = 2usize.pow(13);
+
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
-const MIN_FREQ: f32 = 130.0;
 const MAX_FREQ: f32 = 4200.0;
 
+enum Ping {
+    Audio,
+    Timeout,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // let (tx, rx) = mpsc::channel();
+    let (tx, rx) = mpsc::channel();
     let num_bins: usize = NUM_KEYS - piano::min_key();
     println!("num_bins: {}", num_bins);
     let ringbuf = ringbuf::HeapRb::<f32>::new(RINGBUFFER_SIZE);
@@ -57,12 +59,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut peak_magnitudes = vec![0.0; num_bins];
 
     let mut display = display_impl();
+    let tx_audio = tx.clone();
 
     let stream = device.build_input_stream(
         &stream_config,
         move |samples: &[f32], _: &cpal::InputCallbackInfo| {
             if let Ok(mut buffer) = producer_buffer.lock() {
                 buffer.push_iter_overwrite(&mut samples.iter().copied());
+                if tx_audio.send(Ping::Audio).is_err() {
+                    panic!("Failed to send timeout ping!");
+                }
             }
         },
         |err| eprintln!("an error occurred on stream: {}", err),
@@ -73,6 +79,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let sample_rate = stream_config.sample_rate.0 as u32;
 
+    thread::spawn(move || {
+        let mut last_ping: Option<Ping> = None;
+        loop {
+            match rx.recv() {
+                Ok(Ping::Audio) => {
+                    last_ping = Some(Ping::Audio);
+                }
+                Ok(Ping::Timeout) => match last_ping {
+                    Some(Ping::Timeout) => {
+                        panic!("Two consecutive pings! Exiting");
+                    }
+                    Some(Ping::Audio) => {
+                        last_ping = Some(Ping::Timeout);
+                    }
+                    _none => {
+                        last_ping = Some(Ping::Audio);
+                    }
+                },
+                Err(err) => {
+                    eprintln!("error reading timeout consumer: {}", err);
+                }
+            }
+        }
+    });
+    thread::spawn(move || loop {
+        thread::sleep(Duration::from_millis(500));
+        if tx.send(Ping::Timeout).is_err() {
+            panic!("Failed to send timeout ping!");
+        }
+    });
     // let lowpass = lowpass_filter(cutoff_from_frequency(6000.0, 44_100), 0.01);
     // wait for buffer to fill
     thread::sleep(Duration::from_millis(100));
