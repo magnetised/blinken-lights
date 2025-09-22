@@ -13,6 +13,13 @@ impl Terminal {
 }
 
 impl display::Display for Terminal {
+    // fn visualize_bins(
+    //     &mut self,
+    //     _bins: Vec<f32>,
+    //     _peak_magnitudes: &mut Vec<f32>,
+    //     _config: &display::DisplayConfig,
+    // ) {
+    // }
     fn visualize_bins(
         &mut self,
         bins: Vec<f32>,

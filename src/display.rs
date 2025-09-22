@@ -1,11 +1,15 @@
 use angular_units::Deg;
 use prisma::Hsi;
 
+use serde::{self, Deserialize, Serialize};
+use serde_json::Result;
+
 pub type RGB = (u8, u8, u8);
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DisplayConfig {
-    white: Deg<f32>,
-    black: Deg<f32>,
+    white: f32,
+    black: f32,
     pub fade: f32,
     pub brightness: f32,
 }
@@ -13,11 +17,14 @@ pub struct DisplayConfig {
 impl DisplayConfig {
     pub fn default() -> Self {
         DisplayConfig {
-            white: Deg(1.0),
-            black: Deg(350.0),
+            white: (1.0),
+            black: (350.0),
             fade: 0.82,
             brightness: 0.2,
         }
+    }
+    pub fn decode(json: &str) -> Result<Self> {
+        serde_json::from_str(json)
     }
     pub fn black_colour(&self, intensity: f32) -> RGB {
         self.set_colour(self.black, intensity)
@@ -26,8 +33,8 @@ impl DisplayConfig {
         self.set_colour(self.white, intensity)
     }
 
-    fn set_colour(&self, src_colour: Deg<f32>, intensity: f32) -> RGB {
-        let colour = Hsi::new(src_colour, 1.0, intensity.min(1.0) * self.brightness);
+    fn set_colour(&self, src_colour: f32, intensity: f32) -> RGB {
+        let colour = Hsi::new(Deg(src_colour), 1.0, intensity.min(1.0) * self.brightness);
         let rgb = colour.to_rgb(prisma::HsiOutOfGamutMode::Clip);
         (
             (rgb.red() * 255.0).round() as u8,
