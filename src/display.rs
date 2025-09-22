@@ -7,6 +7,7 @@ pub struct DisplayConfig {
     white: Deg<f32>,
     black: Deg<f32>,
     pub fade: f32,
+    pub brightness: f32,
 }
 
 impl DisplayConfig {
@@ -15,6 +16,7 @@ impl DisplayConfig {
             white: Deg(1.0),
             black: Deg(350.0),
             fade: 0.82,
+            brightness: 0.2,
         }
     }
     pub fn black_colour(&self, intensity: f32) -> RGB {
@@ -25,7 +27,7 @@ impl DisplayConfig {
     }
 
     fn set_colour(&self, src_colour: Deg<f32>, intensity: f32) -> RGB {
-        let colour = Hsi::new(src_colour, 1.0, intensity.min(1.0));
+        let colour = Hsi::new(src_colour, 1.0, intensity.min(1.0) * self.brightness);
         let rgb = colour.to_rgb(prisma::HsiOutOfGamutMode::Clip);
         (
             (rgb.red() * 255.0).round() as u8,

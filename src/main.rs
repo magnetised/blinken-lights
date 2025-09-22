@@ -1,9 +1,11 @@
+use std::panic;
+use std::process;
 use std::thread;
 use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 
 use spectrum_analyzer::scaling::{
     combined,
@@ -12,7 +14,7 @@ use spectrum_analyzer::scaling::{
     scale_to_zero_to_one,
 };
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
+use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum};
 
 use ringbuf::traits::*;
 
@@ -33,6 +35,13 @@ enum Ping {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let orig_hook = panic::take_hook();
+    panic::set_hook(Box::new(move |panic_info| {
+        // invoke the default handler and exit the process
+        orig_hook(panic_info);
+        process::exit(1);
+    }));
+
     let display_config = DisplayConfig::default();
     let (tx, rx) = mpsc::channel();
     let num_bins: usize = piano::num_keys();
@@ -103,10 +112,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    thread::spawn(move || loop {
-        thread::sleep(Duration::from_millis(500));
-        if tx.send(Ping::Timeout).is_err() {
-            panic!("Failed to send timeout ping!");
+    thread::spawn(move || {
+        loop {
+            thread::sleep(Duration::from_millis(500));
+            if tx.send(Ping::Timeout).is_err() {
+                panic!("Failed to send timeout ping!");
+            }
         }
     });
 
