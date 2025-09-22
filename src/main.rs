@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 
 use spectrum_analyzer::scaling::{
     combined,
@@ -15,7 +15,7 @@ use spectrum_analyzer::scaling::{
     scale_to_zero_to_one,
 };
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
+use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum};
 
 use ringbuf::traits::*;
 
@@ -78,7 +78,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     stream_config.buffer_size = cpal::BufferSize::Fixed(1024 as u32);
 
-    let mut display = display_impl();
     let tx_audio = tx.clone();
 
     let stream = device.build_input_stream(
@@ -122,10 +121,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    thread::spawn(move || loop {
-        thread::sleep(Duration::from_millis(500));
-        if tx.send(Ping::Timeout).is_err() {
-            panic!("Failed to send timeout ping!");
+    thread::spawn(move || {
+        loop {
+            thread::sleep(Duration::from_millis(500));
+            if tx.send(Ping::Timeout).is_err() {
+                panic!("Failed to send timeout ping!");
+            }
         }
     });
 
@@ -183,35 +184,38 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // wait for buffer to fill
     thread::sleep(Duration::from_millis(100));
 
-    thread::spawn(move || loop {
-        let mut peak_magnitudes = vec![0.0; num_bins];
-        let sample_rate = stream_config.sample_rate.0 as u32;
-        thread::sleep(Duration::from_millis(4));
+    thread::spawn(move || {
+        loop {
+            let mut display = display_impl();
+            let mut peak_magnitudes = vec![0.0; num_bins];
+            let sample_rate = stream_config.sample_rate.0 as u32;
+            thread::sleep(Duration::from_millis(4));
 
-        let mut samples = [0.0f32; SAMPLE_SIZE];
+            let mut samples = [0.0f32; SAMPLE_SIZE];
 
-        if let Ok(buffer) = consumer_buffer.lock() {
-            let _samples_read = buffer.peek_slice(&mut samples);
-        }
-        // let vec_f64_1: Vec<f64> = samples.iter().map(|&x| x as f64).collect();
-        // let lowpass_samples = quantize_samples::<f32>(&convolve(&lowpass, &vec_f64_1));
-        let hann_window = hann_window(&samples);
-        let fncs = combined(&[
-            &scale_20_times_log10,
-            // &divide_by_N_sqrt,
-            &scale_to_zero_to_one,
-        ]);
-        let spectrum = samples_fft_to_spectrum(
-            &hann_window,
-            sample_rate,
-            FrequencyLimit::Range(piano::MIN_FREQUENCY, piano::MAX_FREQUENCY),
-            Some(&fncs),
-        )
-        .unwrap();
-        let new_bins = piano::bin_magnitudes(spectrum, num_bins);
+            if let Ok(buffer) = consumer_buffer.lock() {
+                let _samples_read = buffer.peek_slice(&mut samples);
+            }
+            // let vec_f64_1: Vec<f64> = samples.iter().map(|&x| x as f64).collect();
+            // let lowpass_samples = quantize_samples::<f32>(&convolve(&lowpass, &vec_f64_1));
+            let hann_window = hann_window(&samples);
+            let fncs = combined(&[
+                &scale_20_times_log10,
+                // &divide_by_N_sqrt,
+                &scale_to_zero_to_one,
+            ]);
+            let spectrum = samples_fft_to_spectrum(
+                &hann_window,
+                sample_rate,
+                FrequencyLimit::Range(piano::MIN_FREQUENCY, piano::MAX_FREQUENCY),
+                Some(&fncs),
+            )
+            .unwrap();
+            let new_bins = piano::bin_magnitudes(spectrum, num_bins);
 
-        if let Ok(wrapper) = display_config_read.lock() {
-            display.visualize_bins(new_bins, &mut peak_magnitudes, &wrapper.config);
+            if let Ok(wrapper) = display_config_read.lock() {
+                display.visualize_bins(new_bins, &mut peak_magnitudes, &wrapper.config);
+            }
         }
     });
 

@@ -1,8 +1,8 @@
 use spectrum_analyzer::FrequencySpectrum;
 
 pub const NUM_KEYS: usize = 88;
-pub const MIN_FREQUENCY: f32 = 120.0;
 pub const MAX_FREQUENCY: f32 = 4200.0;
+pub const MIN_FREQUENCY: f32 = 120.0;
 
 // 1-88
 type KeyIndex = usize;

@@ -3,7 +3,7 @@ use smart_leds::RGB8;
 use ws281x_rpi::Ws2812Rpi;
 
 use crate::display;
-use crate::piano::{key_colour, KeyColour};
+use crate::piano::{KeyColour, key_colour};
 
 const NUM_LEDS: usize = 144;
 const PIN: i32 = 10;
@@ -45,6 +45,7 @@ impl display::Display for LEDs {
             if magnitude > peak_magnitudes[i] {
                 peak_magnitudes[i] = magnitude;
             } else {
+                // eprintln!("fade: {}", config.fade);
                 peak_magnitudes[i] *= config.fade;
             }
             let brightness = peak_magnitudes[i];
