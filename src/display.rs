@@ -51,8 +51,9 @@ impl DisplayConfig {
 pub trait Display {
     fn visualize_bins(
         &mut self,
-        bins: Vec<f32>,
+        bins: &Vec<f32>,
         peak_magnitudes: &mut Vec<f32>,
         config: &DisplayConfig,
     ) -> ();
+    fn reset(&mut self) -> ();
 }

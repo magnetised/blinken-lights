@@ -22,8 +22,9 @@ pub fn num_keys() -> usize {
     NUM_KEYS - min_key()
 }
 
-pub fn bin_magnitudes(spectrum: FrequencySpectrum, num_bins: usize) -> Vec<f32> {
-    let mut bins = vec![0.0; num_bins];
+pub fn bin_magnitudes(bins: &mut Vec<f32>, spectrum: FrequencySpectrum, num_bins: usize) -> () {
+    // let mut bins = vec![0.0; num_bins];
+    bins.fill(0.0);
     let min_key = min_key();
 
     for (freq, value) in spectrum.data().iter() {
@@ -35,8 +36,6 @@ pub fn bin_magnitudes(spectrum: FrequencySpectrum, num_bins: usize) -> Vec<f32> 
             }
         }
     }
-
-    bins
 }
 
 pub fn key_colour(key_number: KeyIndex) -> KeyColour {

@@ -2,7 +2,7 @@
 
 use crate::display;
 
-use crate::piano::{key_colour, KeyColour};
+use crate::piano::{KeyColour, key_colour};
 
 pub struct Terminal {}
 
@@ -22,7 +22,7 @@ impl display::Display for Terminal {
     // }
     fn visualize_bins(
         &mut self,
-        bins: Vec<f32>,
+        bins: &Vec<f32>,
         peak_magnitudes: &mut Vec<f32>,
         config: &display::DisplayConfig,
     ) {
@@ -63,4 +63,5 @@ impl display::Display for Terminal {
         print!("\x1B[2J\x1B[1;1H{}\n{}", lights.join(""), lights.join(""),);
         // print!("{}\n", lights.join(""));
     }
+    fn reset(&mut self) {}
 }

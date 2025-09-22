@@ -32,7 +32,7 @@ impl LEDs {
 impl display::Display for LEDs {
     fn visualize_bins(
         &mut self,
-        bins: Vec<f32>,
+        bins: &Vec<f32>,
         peak_magnitudes: &mut Vec<f32>,
         config: &display::DisplayConfig,
     ) {
@@ -70,5 +70,14 @@ impl display::Display for LEDs {
             self.data.iter().copied(),
         )
         .unwrap();
+    }
+    fn reset(&mut self) {
+        // self.data.fill(RGB8::default());
+        let blank = vec![RGB8::default(); NUM_LEDS];
+        smart_leds::SmartLedsWrite::write(
+            &mut self.leds,
+            // smart_leds::gamma(self.data.iter().copied()),
+            blank.iter().copied(),
+        );
     }
 }

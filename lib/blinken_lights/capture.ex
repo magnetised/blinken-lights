@@ -10,10 +10,10 @@ def set_config(%DisplayConfig{} = config) do
   GenServer.call(__MODULE__, {:set_config, config})
 end
   
-  def init(_args) do
 
-port = start_port()
-{:ok, {port, %{}}}
+  def init(config) do
+port = start_port(config)
+{:ok, {port, config}}
   end
 
   def handle_info({port, {:data, data}}, {port, config}) do
@@ -22,7 +22,7 @@ port = start_port()
   end
   def handle_info({port, {:exit_status, _status}}, {port, config}) do
   IO.puts("Port crashed, restarting")
-port = start_port()
+port = start_port(config)
 send_config({port, config})
 {:noreply, {port, config}}
   end
@@ -31,8 +31,9 @@ send_config({port, config})
   send_config({port, config})
     {:reply, :ok, {port, config}}
   end
-  defp start_port do
-  Port.open({:spawn_executable, exe_path()}, [:stream, :use_stdio, :binary, :exit_status])
+  defp start_port(config) do
+  {:ok, json} = Jason.encode(config)
+  Port.open({:spawn_executable, exe_path()}, [:stream, :use_stdio, :binary, :exit_status, env: [{~c"DISPLAY_CONFIG", to_charlist(json)}]])
   end
   defp exe_path, do: Path.expand("../../target/release/leds", __DIR__) |> to_charlist()
   defp send_config({port, config}) do

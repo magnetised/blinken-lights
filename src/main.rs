@@ -1,3 +1,4 @@
+use std::env;
 use std::io::{self, BufRead, BufReader, Write};
 use std::panic;
 use std::process;
@@ -6,7 +7,7 @@ use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 
 use spectrum_analyzer::scaling::{
     combined,
@@ -15,7 +16,7 @@ use spectrum_analyzer::scaling::{
     scale_to_zero_to_one,
 };
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
+use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum};
 
 use ringbuf::traits::*;
 
@@ -49,8 +50,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         process::exit(1);
     }));
 
+    let load_config = if let Ok(json) = env::var("DISPLAY_CONFIG") {
+        eprintln!("Using config from DISPLAY_CONFIG");
+        if let Ok(config) = DisplayConfig::decode(&json) {
+            config
+        } else {
+            eprintln!("DisplayConfig has error, using default");
+            DisplayConfig::default()
+        }
+    } else {
+        eprintln!("Using default config");
+        DisplayConfig::default()
+    };
     let display_config = Arc::new(Mutex::new(ConfigWrapper {
-        config: DisplayConfig::default(),
+        config: load_config,
     }));
     let display_config_read = Arc::clone(&display_config);
     let display_config_write = Arc::clone(&display_config);
@@ -121,10 +134,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    thread::spawn(move || loop {
-        thread::sleep(Duration::from_millis(500));
-        if tx.send(Ping::Timeout).is_err() {
-            panic!("Failed to send timeout ping!");
+    thread::spawn(move || {
+        loop {
+            thread::sleep(Duration::from_millis(500));
+            if tx.send(Ping::Timeout).is_err() {
+                panic!("Failed to send timeout ping!");
+            }
         }
     });
 
@@ -147,10 +162,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Ok(_) => {
                     // Successfully read a line
-                    eprintln!("Child received: {}", line);
                     let c: display::DisplayConfig =
                         DisplayConfig::decode(&line).expect("Failed to decode json");
-                    eprintln!("{:?}", c);
                     if let Ok(mut wrapper) = display_config_write.lock() {
                         wrapper.config = c;
                     }
@@ -165,18 +178,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     });
-    // thread::spawn(move || loop {
-    //     let mut port = unsafe {
-    //         use erlang_port::PacketSize;
-    //         erlang_port::nouse_stdio(PacketSize::Four)
-    //     };
-    //     for string_in in port.receiver.iter::<String>() {
-    //         println!("port: {}", string_in);
-    //         // let result = upcase(string_in);
-    //
-    //         port.sender.reply(Ok::<String, String>("ok".to_string()));
-    //     }
-    // });
 
     // let lowpass = lowpass_filter(cutoff_from_frequency(6000.0, 44_100), 0.01);
     // wait for buffer to fill
@@ -184,12 +185,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     thread::spawn(move || {
         let mut peak_magnitudes = vec![0.0; num_bins];
+        let sample_rate = stream_config.sample_rate.0 as u32;
+        let mut samples = [0.0f32; SAMPLE_SIZE];
+        let mut bins = vec![0.0; num_bins];
+        let mut display = display_impl();
+        // let mut bins = Rc::new(RefCell::new(vec![0.0; num_bins]));
         loop {
-            let mut display = display_impl();
-            let sample_rate = stream_config.sample_rate.0 as u32;
             thread::sleep(Duration::from_millis(4));
-
-            let mut samples = [0.0f32; SAMPLE_SIZE];
 
             if let Ok(buffer) = consumer_buffer.lock() {
                 let _samples_read = buffer.peek_slice(&mut samples);
@@ -209,10 +211,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Some(&fncs),
             )
             .unwrap();
-            let new_bins = piano::bin_magnitudes(spectrum, num_bins);
+            piano::bin_magnitudes(&mut bins, spectrum, num_bins);
 
             if let Ok(wrapper) = display_config_read.lock() {
-                display.visualize_bins(new_bins, &mut peak_magnitudes, &wrapper.config);
+                display.visualize_bins(&bins, &mut peak_magnitudes, &wrapper.config);
             }
         }
     });
@@ -228,6 +230,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Clean shutdown
     eprintln!("Child: Exiting gracefully");
+    let mut display = display_impl();
+    display.reset();
     process::exit(0);
 }
 
