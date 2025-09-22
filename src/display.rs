@@ -19,8 +19,8 @@ impl DisplayConfig {
         DisplayConfig {
             white: (1.0),
             black: (350.0),
-            fade: 0.99,
-            brightness: 0.2,
+            fade: 0.9,
+            brightness: 0.5,
         }
     }
     pub fn decode(json: &str) -> Result<Self> {

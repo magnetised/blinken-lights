@@ -36,7 +36,6 @@ impl display::Display for Terminal {
                 peak_magnitudes[i] *= config.fade;
             }
 
-            // let brightness = (peak_magnitudes[i] * 255.0).min(255.0) as u8;
             let brightness = peak_magnitudes[i];
             // let brightness = 255.0;
             // let character = "●";

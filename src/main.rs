@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-use std::sync::{Arc, Mutex, mpsc};
+use std::sync::{mpsc, Arc, Mutex};
 
 use spectrum_analyzer::scaling::{
     combined,
@@ -15,7 +15,7 @@ use spectrum_analyzer::scaling::{
     scale_to_zero_to_one,
 };
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum};
+use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use ringbuf::traits::*;
 
@@ -121,12 +121,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    thread::spawn(move || {
-        loop {
-            thread::sleep(Duration::from_millis(500));
-            if tx.send(Ping::Timeout).is_err() {
-                panic!("Failed to send timeout ping!");
-            }
+    thread::spawn(move || loop {
+        thread::sleep(Duration::from_millis(500));
+        if tx.send(Ping::Timeout).is_err() {
+            panic!("Failed to send timeout ping!");
         }
     });
 
@@ -185,9 +183,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     thread::sleep(Duration::from_millis(100));
 
     thread::spawn(move || {
+        let mut peak_magnitudes = vec![0.0; num_bins];
         loop {
             let mut display = display_impl();
-            let mut peak_magnitudes = vec![0.0; num_bins];
             let sample_rate = stream_config.sample_rate.0 as u32;
             thread::sleep(Duration::from_millis(4));
 
