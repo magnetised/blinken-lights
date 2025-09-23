@@ -16,5 +16,4 @@ defmodule BlinkenLights.Application do
     opts = [strategy: :one_for_one, name: BlinkenLights.Supervisor]
     Supervisor.start_link(children, opts)
   end
-
 end
