@@ -66,8 +66,7 @@ impl display::Display for LEDs {
         }
         smart_leds::SmartLedsWrite::write(
             &mut self.leds,
-            // smart_leds::gamma(self.data.iter().copied()),
-            self.data.iter().copied(),
+            smart_leds::gamma(self.data.iter().copied()), // self.data.iter().copied(),
         )
         .unwrap();
     }
