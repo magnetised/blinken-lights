@@ -1,5 +1,5 @@
 use std::env;
-use std::io::{self, BufRead, BufReader, Write};
+use std::io::{self, BufRead, BufReader};
 use std::panic;
 use std::process;
 use std::thread;

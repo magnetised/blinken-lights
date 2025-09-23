@@ -73,7 +73,7 @@ impl display::Display for LEDs {
     fn reset(&mut self) {
         // self.data.fill(RGB8::default());
         let blank = vec![RGB8::default(); NUM_LEDS];
-        smart_leds::SmartLedsWrite::write(
+        let _ = smart_leds::SmartLedsWrite::write(
             &mut self.leds,
             // smart_leds::gamma(self.data.iter().copied()),
             blank.iter().copied(),
