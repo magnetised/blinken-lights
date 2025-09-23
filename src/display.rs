@@ -12,6 +12,7 @@ pub struct DisplayConfig {
     black: f32,
     pub fade: f32,
     pub brightness: f32,
+    pub sensitivity: f32,
 }
 
 impl DisplayConfig {
@@ -21,6 +22,7 @@ impl DisplayConfig {
             black: (350.0),
             fade: 0.9,
             brightness: 0.5,
+            sensitivity: 1.0,
         }
     }
     pub fn decode(json: &str) -> Result<Self> {
@@ -39,7 +41,7 @@ impl DisplayConfig {
             1.0,
             (intensity * self.brightness).clamp(0.0, 1.0),
         );
-        let rgb = colour.to_rgb(prisma::HsiOutOfGamutMode::Clip);
+        let rgb = colour.to_rgb(prisma::HsiOutOfGamutMode::Preserve);
         (
             (rgb.red() * 255.0).round() as u8,
             (rgb.green() * 255.0).round() as u8,

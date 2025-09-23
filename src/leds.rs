@@ -48,7 +48,7 @@ impl display::Display for LEDs {
                 // eprintln!("fade: {}", config.fade);
                 peak_magnitudes[i] *= config.fade;
             }
-            let brightness = peak_magnitudes[i];
+            let brightness = peak_magnitudes[i] * config.sensitivity;
             match key_colour(i + 1) {
                 KeyColour::White => {
                     let rgb = config.white_colour(brightness);

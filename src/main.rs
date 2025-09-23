@@ -211,9 +211,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Some(&fncs),
             )
             .unwrap();
-            piano::bin_magnitudes(&mut bins, spectrum, num_bins);
 
             if let Ok(wrapper) = display_config_read.lock() {
+                piano::bin_magnitudes(&mut bins, spectrum, num_bins, &wrapper.config);
                 display.visualize_bins(&bins, &mut peak_magnitudes, &wrapper.config);
             }
         }

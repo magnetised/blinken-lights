@@ -1,5 +1,7 @@
 use spectrum_analyzer::FrequencySpectrum;
 
+use crate::display::DisplayConfig;
+
 pub const NUM_KEYS: usize = 88;
 pub const MAX_FREQUENCY: f32 = 4200.0;
 pub const MIN_FREQUENCY: f32 = 120.0;
@@ -22,7 +24,12 @@ pub fn num_keys() -> usize {
     NUM_KEYS - min_key()
 }
 
-pub fn bin_magnitudes(bins: &mut Vec<f32>, spectrum: FrequencySpectrum, num_bins: usize) -> () {
+pub fn bin_magnitudes(
+    bins: &mut Vec<f32>,
+    spectrum: FrequencySpectrum,
+    num_bins: usize,
+    _display_config: &DisplayConfig,
+) -> () {
     // let mut bins = vec![0.0; num_bins];
     bins.fill(0.0);
     let min_key = min_key();
@@ -30,11 +37,11 @@ pub fn bin_magnitudes(bins: &mut Vec<f32>, spectrum: FrequencySpectrum, num_bins
     for (freq, value) in spectrum.data().iter() {
         let (key_number, decay) = frequency_to_nearest_key(freq.val());
         let bin_index = (key_number - 1 - min_key) as BinIndex;
-        if value.val() > 0.01 {
-            if bin_index < num_bins {
-                bins[bin_index] += decay * value.val();
-            }
+        // if value.val() > (1.0 - display_config.sensitivity) {
+        if bin_index < num_bins {
+            bins[bin_index] += decay * value.val();
         }
+        // }
     }
 }
 
