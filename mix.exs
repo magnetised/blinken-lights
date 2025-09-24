@@ -22,7 +22,11 @@ defmodule BlinkenLights.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      {:bandit, "~> 1.0"},
+      {:plug, "~> 1.0"},
+      {:websock_adapter, "~> 0.5"},
+      {:esbuild, "~> 0.10.0"}
     ]
   end
 end

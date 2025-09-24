@@ -26,3 +26,5 @@ blinken_lights-*.tar
 /tmp/
 
 /target
+assets/node_modules
+priv/static/assets

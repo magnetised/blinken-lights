@@ -9,7 +9,8 @@ defmodule BlinkenLights.Application do
   def start(_type, _args) do
     children = [
       {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}},
-      BlinkenLights.ColourCycle
+      BlinkenLights.ColourCycle,
+      {Bandit, plug: BlinkenLights.Router}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
