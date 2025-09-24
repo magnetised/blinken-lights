@@ -21,7 +21,7 @@ impl LEDs {
             data: vec![RGB8::default(); NUM_LEDS],
         }
     }
-    fn set_colour(&mut self, l: usize, rgb: display::RGB) {
+    fn set_colour(&mut self, l: usize, rgb: display::Rgb) {
         let (r, g, b) = rgb;
         self.data[l].r = r;
         self.data[l].g = g;
@@ -32,7 +32,7 @@ impl LEDs {
 impl display::Display for LEDs {
     fn visualize_bins(
         &mut self,
-        bins: &Vec<f32>,
+        bins: &[f32],
         peak_magnitudes: &mut Vec<f32>,
         config: &display::DisplayConfig,
     ) {
@@ -54,12 +54,12 @@ impl display::Display for LEDs {
                     self.set_colour(l, rgb);
                     self.set_colour(l + 1, rgb);
                     self.set_colour(l + 2, rgb);
-                    l = l + 3;
+                    l += 3;
                 }
                 KeyColour::Black => {
                     let rgb = config.black_colour(brightness);
                     self.set_colour(l, rgb);
-                    l = l + 1;
+                    l += 1;
                 }
             }
         }

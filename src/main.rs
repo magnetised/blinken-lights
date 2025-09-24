@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut stream_config: cpal::StreamConfig = config.into();
 
-    stream_config.buffer_size = cpal::BufferSize::Fixed(1024 as u32);
+    stream_config.buffer_size = cpal::BufferSize::Fixed(1024);
 
     let tx_audio = tx.clone();
 
@@ -118,7 +118,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Ok(Ping::Timeout) => match last_ping {
                     Some(Ping::Timeout) => {
-                        panic!("Two consecutive pings! Exiting");
+                        panic!("Two consecutive timeouts! Exiting");
                     }
                     Some(Ping::Audio) => {
                         last_ping = Some(Ping::Timeout);

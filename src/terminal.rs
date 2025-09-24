@@ -22,7 +22,7 @@ impl display::Display for Terminal {
     // }
     fn visualize_bins(
         &mut self,
-        bins: &Vec<f32>,
+        bins: &[f32],
         peak_magnitudes: &mut Vec<f32>,
         config: &display::DisplayConfig,
     ) {

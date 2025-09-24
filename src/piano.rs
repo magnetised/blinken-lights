@@ -25,11 +25,11 @@ pub fn num_keys() -> usize {
 }
 
 pub fn bin_magnitudes(
-    bins: &mut Vec<f32>,
+    bins: &mut [f32],
     spectrum: FrequencySpectrum,
     num_bins: usize,
     _display_config: &DisplayConfig,
-) -> () {
+) {
     // let mut bins = vec![0.0; num_bins];
     bins.fill(0.0);
     let min_key = min_key();
@@ -46,7 +46,7 @@ pub fn bin_magnitudes(
 }
 
 pub fn key_colour(key_number: KeyIndex) -> KeyColour {
-    if key_number < 1 || key_number > 88 {
+    if !(1..=88).contains(&key_number) {
         panic!("key number should be 1-88 inclusive");
     }
     let position_in_octave = get_note_index_in_octave(key_number);
@@ -62,7 +62,7 @@ fn get_note_index_in_octave(key_number: KeyIndex) -> usize {
     if key_number <= 3 {
         return 9 + (key_number - 1);
     }
-    ((key_number - 4) % 12) as usize
+    (key_number - 4) % 12
 }
 // Function to get the nearest integer key number
 fn frequency_to_nearest_key(frequency: f32) -> (KeyIndex, f32) {
