@@ -45,7 +45,6 @@ impl display::Display for LEDs {
             if magnitude > peak_magnitudes[i] {
                 peak_magnitudes[i] = magnitude;
             } else {
-                // eprintln!("fade: {}", config.fade);
                 peak_magnitudes[i] *= config.fade;
             }
             let brightness = peak_magnitudes[i] * config.sensitivity;

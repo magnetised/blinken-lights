@@ -5,7 +5,7 @@ defmodule BlinkenLights do
     BlinkenLights.Capture.set_config(config)
   end
 
-  def config(attrs) do
-    struct(DisplayConfig, attrs) |> config()
+  def config(attrs) when is_list(attrs) do
+    BlinkenLights.Capture.set_config(attrs)
   end
 end

@@ -1,5 +1,5 @@
 use angular_units::Deg;
-use prisma::Hsi;
+use prisma::{FromColor, Hsi, Hsv, Rgb};
 
 use serde::{self, Deserialize, Serialize};
 use serde_json::Result;
@@ -36,12 +36,13 @@ impl DisplayConfig {
     }
 
     fn set_colour(&self, src_colour: f32, intensity: f32) -> RGB {
-        let colour = Hsi::new(
-            Deg(src_colour),
+        let colour = Hsv::new(
+            Deg(src_colour.clamp(0.0, 359.9)),
             1.0,
             (intensity * self.brightness).clamp(0.0, 1.0),
         );
-        let rgb = colour.to_rgb(prisma::HsiOutOfGamutMode::Preserve);
+        let rgb = Rgb::from_color(&colour);
+        // let rgb = colour.to_rgb(prisma::HsiOutOfGamutMode::Preserve);
         (
             (rgb.red() * 255.0).round() as u8,
             (rgb.green() * 255.0).round() as u8,

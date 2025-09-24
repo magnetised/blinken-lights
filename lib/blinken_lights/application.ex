@@ -8,7 +8,8 @@ defmodule BlinkenLights.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}}
+      {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}},
+      BlinkenLights.ColourCycle
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
