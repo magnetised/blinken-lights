@@ -25,7 +25,7 @@ defmodule BlinkenLights.ColourCycle do
     {:reply, :ok, state}
   end
 
-  def handle_call(:stop_cycle, _from, %{timer: nil} = state)  do
+  def handle_call(:stop_cycle, _from, %{timer: nil} = state) do
     {:reply, :ok, state}
   end
 
