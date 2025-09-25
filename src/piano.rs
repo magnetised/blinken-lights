@@ -33,6 +33,7 @@ pub fn bin_magnitudes(
     // let mut bins = vec![0.0; num_bins];
     bins.fill(0.0);
     let min_key = min_key();
+    let mut max = 0.0f32;
 
     for (freq, value) in spectrum.data().iter() {
         let (key_number, decay) = frequency_to_nearest_key(freq.val());
@@ -40,8 +41,17 @@ pub fn bin_magnitudes(
         // if value.val() > (1.0 - display_config.sensitivity) {
         if bin_index < num_bins {
             bins[bin_index] += decay * value.val();
+            if bins[bin_index] > max {
+                max = bins[bin_index];
+            }
         }
         // }
+    }
+    if max > 0.01 {
+        for val in bins.iter_mut() {
+            let new = ((*val) / max).powf(3.0);
+            *val = new;
+        }
     }
 }
 

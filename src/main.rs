@@ -10,10 +10,11 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::sync::{Arc, Mutex, mpsc};
 
 use spectrum_analyzer::scaling::{
-    combined,
-    // divide_by_N, divide_by_N_sqrt,
-    scale_20_times_log10,
-    scale_to_zero_to_one,
+    // combined,
+    // divide_by_N,
+    divide_by_N_sqrt,
+    // scale_20_times_log10,
+    // scale_to_zero_to_one,
 };
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum};
@@ -199,16 +200,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // let vec_f64_1: Vec<f64> = samples.iter().map(|&x| x as f64).collect();
             // let lowpass_samples = quantize_samples::<f32>(&convolve(&lowpass, &vec_f64_1));
             let hann_window = hann_window(&samples);
-            let fncs = combined(&[
-                &scale_20_times_log10,
-                // &divide_by_N_sqrt,
-                &scale_to_zero_to_one,
-            ]);
+            // let fncs = combined(&[
+            //     // &scale_20_times_log10,
+            //     &divide_by_N_sqrt,
+            //     // &scale_to_zero_to_one,
+            // ]);
             let spectrum = samples_fft_to_spectrum(
                 &hann_window,
                 sample_rate,
                 FrequencyLimit::Range(piano::MIN_FREQUENCY, piano::MAX_FREQUENCY),
-                Some(&fncs),
+                Some(&divide_by_N_sqrt),
             )
             .unwrap();
 
