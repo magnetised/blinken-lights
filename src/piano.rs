@@ -28,7 +28,7 @@ pub fn bin_magnitudes(
     bins: &mut [f32],
     spectrum: FrequencySpectrum,
     num_bins: usize,
-    _display_config: &DisplayConfig,
+    display_config: &DisplayConfig,
 ) {
     // let mut bins = vec![0.0; num_bins];
     bins.fill(0.0);
@@ -49,7 +49,7 @@ pub fn bin_magnitudes(
     }
     if max > 0.01 {
         for val in bins.iter_mut() {
-            let new = ((*val) / max).powf(3.0);
+            let new = ((*val) / max).powf(display_config.decay);
             *val = new;
         }
     }
@@ -80,7 +80,7 @@ fn frequency_to_nearest_key(frequency: f32) -> (KeyIndex, f32) {
     let key = key_position.round() as usize;
     let diff = key as f32 - key_position;
     // let decay = normal_decay(diff, SIGMA);
-    let decay = exponential_decay(diff);
+    let decay = exponential_decay(diff, 20.0);
     (key, decay)
 }
 
@@ -93,13 +93,11 @@ fn key_number_to_frequency(key: usize) -> f32 {
     (440.0 * 2.0_f64.powf((key as f64 - 49.0) / 12.0)) as f32
 }
 
-fn exponential_decay(x: f32) -> f32 {
-    const STEEPNESS: f32 = 20.0;
+fn exponential_decay(x: f32, steepness: f32) -> f32 {
     let x = x.clamp(0.0, 1.0);
-    (-STEEPNESS * x).exp()
+    (-steepness * x).exp()
 }
 
-#[allow(dead_code)]
 fn normal_decay(x: f32, sigma: f32) -> f32 {
     let x = x.clamp(0.0, 1.0);
     let gaussian = (-0.5 * (x / sigma).powi(2)).exp();

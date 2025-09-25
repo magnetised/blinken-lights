@@ -14,6 +14,7 @@ pub struct DisplayConfig {
     pub fade: f32,
     pub brightness: f32,
     pub sensitivity: f32,
+    pub decay: f32,
 }
 
 impl DisplayConfig {
@@ -25,6 +26,7 @@ impl DisplayConfig {
             fade: 0.9,
             brightness: 0.5,
             sensitivity: 1.0,
+            decay: 1.8,
         }
     }
     pub fn decode(json: &str) -> Result<Self> {
