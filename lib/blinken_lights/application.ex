@@ -9,7 +9,7 @@ defmodule BlinkenLights.Application do
   def start(_type, _args) do
     children = [
       {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}},
-      BlinkenLights.ColourCycle,
+      {DynamicSupervisor, name: BlinkenLights.DynamicSupervisor, strategy: :one_for_one},
       {Bandit, plug: BlinkenLights.Router}
     ]
 

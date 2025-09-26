@@ -1,37 +1,28 @@
 defmodule BlinkenLights.ColourCycle do
-  use GenServer
+  use GenServer, restart: :transient
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def start_cycle do
-    GenServer.call(__MODULE__, :start_cycle)
+  def start do
+    DynamicSupervisor.start_child(BlinkenLights.DynamicSupervisor, {__MODULE__, []})
   end
 
-  def stop_cycle do
+  def stop do
     GenServer.call(__MODULE__, :stop_cycle)
   end
 
   def init(_args) do
-    {:ok, %{hue: 0, timer: nil}}
+    {:ok, cycle(%{hue: 0})}
   end
 
-  def handle_call(:start_cycle, _from, %{timer: nil} = state) do
-    {:reply, :ok, cycle(state)}
+  def handle_continue(:stop_cycle,  state) do
+    {:stop, :normal, state}
   end
 
-  def handle_call(:start_cycle, _from, state) do
-    {:reply, :ok, state}
-  end
-
-  def handle_call(:stop_cycle, _from, %{timer: nil} = state) do
-    {:reply, :ok, state}
-  end
-
-  def handle_call(:stop_cycle, _from, %{timer: timer} = state) when is_reference(timer) do
-    Process.cancel_timer(timer)
-    {:reply, :ok, %{state | timer: nil}}
+  def handle_call(:stop_cycle, _from,  state) do
+    {:reply,  :ok, state, {:continue, :stop_cycle}}
   end
 
   def handle_info(:cycle, state) do
@@ -41,8 +32,8 @@ defmodule BlinkenLights.ColourCycle do
   defp cycle(state) do
     {white, black, state} = next(state)
     BlinkenLights.config(white: white, black: black)
-    ref = Process.send_after(self(), :cycle, 100)
-    %{state | timer: ref}
+    _ref = Process.send_after(self(), :cycle, 100)
+    state
   end
 
   defp next(%{hue: hue} = state) do

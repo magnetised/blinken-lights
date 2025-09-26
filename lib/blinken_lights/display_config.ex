@@ -7,5 +7,6 @@ defmodule BlinkenLights.DisplayConfig do
             fade: 0.89,
             brightness: 0.5,
             sensitivity: 1.0,
-            decay: 1.8
+            decay: 1.8,
+            scale: false
 end

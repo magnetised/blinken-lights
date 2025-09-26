@@ -14,6 +14,11 @@ pub struct DisplayConfig {
     pub fade: f32,
     pub brightness: f32,
     pub sensitivity: f32,
+    // turn on output scaling, makes even quiet sounds
+    // show up
+    pub scale: bool,
+    // how much to decay values < the max when scaling. bigger means
+    // the display is more "peaky"
     pub decay: f32,
 }
 
@@ -27,6 +32,7 @@ impl DisplayConfig {
             brightness: 0.5,
             sensitivity: 1.0,
             decay: 1.8,
+            scale: false,
         }
     }
     pub fn decode(json: &str) -> Result<Self> {

@@ -30,7 +30,6 @@ pub fn bin_magnitudes(
     num_bins: usize,
     display_config: &DisplayConfig,
 ) {
-    // let mut bins = vec![0.0; num_bins];
     bins.fill(0.0);
     let min_key = min_key();
     let mut max = 0.0f32;
@@ -47,10 +46,9 @@ pub fn bin_magnitudes(
         }
         // }
     }
-    if max > 0.01 {
+    if display_config.scale && max > 0.01 {
         for val in bins.iter_mut() {
-            let new = ((*val) / max).powf(display_config.decay);
-            *val = new;
+            *val = ((*val) / max).powf(display_config.decay);
         }
     }
 }

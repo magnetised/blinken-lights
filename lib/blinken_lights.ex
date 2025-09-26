@@ -8,4 +8,12 @@ defmodule BlinkenLights do
   def config(attrs) when is_list(attrs) do
     BlinkenLights.Capture.set_config(attrs)
   end
+
+  def start_cycle do
+    BlinkenLights.ColourCycle.start()
+  end
+
+  def stop_cycle do
+    BlinkenLights.ColourCycle.stop()
+  end
 end
