@@ -226,15 +226,7 @@ const ColorControls = () => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-6 text-gray-800">
-        Color Controls
-      </h2>
-
-      {/* Color Preview */}
       <div className="mb-8">
-        <div className="text-sm font-medium text-gray-700 mb-3">
-          Color Preview
-        </div>
         <div className="flex space-x-4">
           <div
             className="w-24 h-24 rounded-lg border-2 border-gray-300 shadow-inner"
@@ -330,35 +322,6 @@ const ColorControls = () => {
       ) : (
         ""
       )}
-
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">
-          Current Values
-        </h3>
-        <div className="grid grid-cols-2 gap-4 text-xs font-mono">
-          <div>
-            White Hue: <span className="font-bold">{whiteHue}°</span>
-          </div>
-          <div>
-            Black Hue: <span className="font-bold">{blackHue}°</span>
-          </div>
-          <div>
-            Saturation:{" "}
-            <span className="font-bold">{saturation.toFixed(2)}</span>
-          </div>
-          <div>
-            Brightness:{" "}
-            <span className="font-bold">{brightness.toFixed(2)}</span>
-          </div>
-          <div>
-            Fade: <span className="font-bold">{fade.toFixed(2)}</span>
-          </div>
-          <div className="col-span-2">
-            Color Cycle:{" "}
-            <span className="font-bold">{colorCycle ? "ON" : "OFF"}</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
@@ -369,9 +332,6 @@ const App = () => {
       <ConnectionStatus />
       <div className="min-h-screen bg-gray-100 p-4">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
-            HSL Color Controller
-          </h1>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ColorControls />
           </div>
