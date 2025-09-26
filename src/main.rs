@@ -1,13 +1,10 @@
-use std::env;
 use std::io::{self, BufRead, BufReader};
-use std::panic;
-use std::process;
-use std::thread;
 use std::time::Duration;
+use std::{env, panic, process, thread};
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-use std::sync::{Arc, Mutex, mpsc};
+use std::sync::{mpsc, Arc, Mutex};
 
 use spectrum_analyzer::scaling::{
     combined,
@@ -17,11 +14,9 @@ use spectrum_analyzer::scaling::{
     scale_to_zero_to_one,
 };
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum};
+use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use ringbuf::traits::*;
-
-// use erlang_port::{PortReceive, PortSend};
 
 mod display;
 mod leds;
@@ -31,7 +26,6 @@ mod terminal;
 use crate::display::{Display, DisplayConfig};
 
 const SAMPLE_SIZE: usize = 2usize.pow(13);
-
 const RINGBUFFER_SIZE: usize = SAMPLE_SIZE;
 
 enum Ping {
@@ -135,12 +129,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    thread::spawn(move || {
-        loop {
-            thread::sleep(Duration::from_millis(500));
-            if tx.send(Ping::Timeout).is_err() {
-                panic!("Failed to send timeout ping!");
-            }
+    thread::spawn(move || loop {
+        thread::sleep(Duration::from_millis(500));
+        if tx.send(Ping::Timeout).is_err() {
+            panic!("Failed to send timeout ping!");
         }
     });
 
@@ -180,7 +172,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // let lowpass = lowpass_filter(cutoff_from_frequency(6000.0, 44_100), 0.01);
     // wait for buffer to fill
     thread::sleep(Duration::from_millis(100));
 
@@ -190,15 +181,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut samples = [0.0f32; SAMPLE_SIZE];
         let mut bins = vec![0.0; num_bins];
         let mut display = display_impl();
-        // let mut bins = Rc::new(RefCell::new(vec![0.0; num_bins]));
         loop {
             thread::sleep(Duration::from_millis(4));
 
             if let Ok(buffer) = consumer_buffer.lock() {
                 let _samples_read = buffer.peek_slice(&mut samples);
             }
-            // let vec_f64_1: Vec<f64> = samples.iter().map(|&x| x as f64).collect();
-            // let lowpass_samples = quantize_samples::<f32>(&convolve(&lowpass, &vec_f64_1));
             let hann_window = hann_window(&samples);
             if let Ok(wrapper) = display_config_read.lock() {
                 let fncs: Box<spectrum_analyzer::scaling::SpectrumScalingFunction> =
@@ -207,16 +195,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     } else {
                         combined(&[
                             &scale_20_times_log10,
-                            //                     //     &divide_by_N_sqrt,
+                            // &divide_by_N_sqrt,
                             &scale_to_zero_to_one,
                         ])
-                        // Box::new(&scale_20_times_log10)
                     };
-                // let fncs = combined(&[
-                //     // &scale_20_times_log10,
-                //     &divide_by_N_sqrt,
-                //     // &scale_to_zero_to_one,
-                // ]);
                 let spectrum = samples_fft_to_spectrum(
                     &hann_window,
                     sample_rate,
@@ -240,7 +222,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // Clean shutdown
     eprintln!("Child: Exiting gracefully");
     let mut display = display_impl();
     display.reset();
