@@ -5,9 +5,9 @@ defmodule BlinkenLights.Websocket do
 
   def init(_) do
     IO.puts("New connection PID: #{inspect(self())}")
-    {:ok, config} = BlinkenLights.config() 
+    {:ok, config} = BlinkenLights.config()
     cycle? = BlinkenLights.ColourCycle.running?()
-    {:ok, msg} = Jason.encode(config |> Map.from_struct() |> Map.put(:cycle, cycle?)) |> dbg
+    {:ok, msg} = config |> Map.from_struct() |> Map.put(:cycle, cycle?) |> Jason.encode()
     {:push, [{:text, msg}], []}
   end
 
@@ -17,8 +17,6 @@ defmodule BlinkenLights.Websocket do
       {:error, reason} -> Logger.error("Invalid JSON from client: #{reason}")
     end
 
-    # Message.handle_client_message(client_message)
-    dbg(client_message: client_message)
     {:ok, state}
   end
 
@@ -59,8 +57,10 @@ defmodule BlinkenLights.Websocket do
 
       "scale" ->
         [scale: value]
+
       "decay" ->
         [decay: value]
+
       unknown ->
         Logger.error("unknown control: #{inspect(unknown)} => #{inspect(value)}")
         []

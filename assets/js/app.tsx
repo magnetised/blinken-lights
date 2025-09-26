@@ -13,7 +13,9 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 const WebSocketContext = createContext();
 
 const WebSocketProvider = ({ children }) => {
-  const [socketUrl, setSocketUrl] = useState(`ws://${window.location.host}/websocket`);
+  const [socketUrl, setSocketUrl] = useState(
+    `ws://${window.location.host}/websocket`,
+  );
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
   const [messages, setMessages] = useState([]);
@@ -21,9 +23,9 @@ const WebSocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (lastMessage !== null) {
-      console.log('got', lastMessage.data)
+      console.log("got", lastMessage.data);
 
-      setConfig(JSON.parse(lastMessage.data))
+      setConfig(JSON.parse(lastMessage.data));
       // setMessages((prev) => prev.concat(lastMessage));
     }
   }, [lastMessage]);
@@ -52,7 +54,6 @@ const WebSocketProvider = ({ children }) => {
         config,
       }}
     >
-
       {config ? children : "Loading"}
     </WebSocketContext.Provider>
   );
@@ -105,6 +106,7 @@ const SliderControl = ({
   onChange,
   unit = "",
   color = "blue",
+  disabled = false,
 }) => {
   const { sendMessage, isConnected } = joinWebSocket();
 
@@ -142,7 +144,7 @@ const SliderControl = ({
           step={step}
           value={value}
           onChange={handleChange}
-          disabled={!isConnected()}
+          disabled={!isConnected() || disabled}
           className={`w-full h-2 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
             bg-gradient-to-r from-gray-300 to-${color}-500`}
           style={{
@@ -156,10 +158,10 @@ const SliderControl = ({
                     : `linear-gradient(to right, #e5e5e5, #${color === "blue" ? "3b82f6" : color === "green" ? "10b981" : "f59e0b"})`,
           }}
         />
-        <div
-          className={`absolute top-0 w-4 h-2 bg-white border-2 border-${color}-600 rounded-full transform -translate-x-2`}
-          style={{ left: `${percentage}%` }}
-        />
+        {/* <div */}
+        {/*   className={`absolute top-0 w-4 h-2 bg-white border-2 border-${color}-600 rounded-full transform -translate-x-2`} */}
+        {/*   style={{ left: `${percentage}%` }} */}
+        {/* /> */}
       </div>
     </div>
   );
@@ -201,16 +203,6 @@ const ToggleControl = ({ label, value, onChange, color = "blue" }) => {
           />
         </button>
       </div>
-      <div className="mt-1">
-        <span className="text-xs text-gray-500">
-          Status:{" "}
-          <span
-            className={`font-medium ${value ? "text-green-600" : "text-gray-600"}`}
-          >
-            {value ? "ON" : "OFF"}
-          </span>
-        </span>
-      </div>
     </div>
   );
 };
@@ -227,9 +219,10 @@ const ColorControls = () => {
   const [scale, setScale] = useState(config.scale);
   const [decay, setDecay] = useState(config.decay);
 
+  const l = 50 + (1 - saturation) * 50;
   // Calculate current color
-  const whiteColor = `hsl(${whiteHue} ${saturation * 100}% 50%)`;
-  const blackColor = `hsl(${blackHue} ${saturation * 100}% 50%)`;
+  const whiteColor = `hsl(${whiteHue} ${saturation * 100}% ${l}%)`;
+  const blackColor = `hsl(${blackHue} ${saturation * 100}% ${l}%)`;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -268,6 +261,7 @@ const ColorControls = () => {
         onChange={setWhiteHue}
         unit="°"
         color="red"
+        disabled={colorCycle}
       />
       <SliderControl
         label="Black Hue"
@@ -278,6 +272,7 @@ const ColorControls = () => {
         onChange={setBlackHue}
         unit="°"
         color="red"
+        disabled={colorCycle}
       />
 
       <SliderControl
@@ -322,15 +317,19 @@ const ColorControls = () => {
         onChange={setScale}
         color="purple"
       />
-      <SliderControl
-        label="Decay"
-        value={decay}
-        min={1}
-        max={5}
-        step={0.2}
-        onChange={setDecay}
-        color="blue"
-      />
+      {scale ? (
+        <SliderControl
+          label="Decay"
+          value={decay}
+          min={1}
+          max={5}
+          step={0.2}
+          onChange={setDecay}
+          color="blue"
+        />
+      ) : (
+        ""
+      )}
 
       <div className="mt-6 p-4 bg-gray-50 rounded-lg">
         <h3 className="text-sm font-medium text-gray-700 mb-2">
