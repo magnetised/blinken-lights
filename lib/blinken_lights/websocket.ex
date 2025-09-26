@@ -5,8 +5,10 @@ defmodule BlinkenLights.Websocket do
 
   def init(_) do
     IO.puts("New connection PID: #{inspect(self())}")
-    # FIXME: send the current config to the browser
-    {:ok, []}
+    {:ok, config} = BlinkenLights.config() 
+    cycle? = BlinkenLights.ColourCycle.running?()
+    {:ok, msg} = Jason.encode(config |> Map.from_struct() |> Map.put(:cycle, cycle?)) |> dbg
+    {:push, [{:text, msg}], []}
   end
 
   def handle_in({client_message, [opcode: :text]}, state) do
@@ -55,6 +57,10 @@ defmodule BlinkenLights.Websocket do
       "saturation" ->
         [saturation: value]
 
+      "scale" ->
+        [scale: value]
+      "decay" ->
+        [decay: value]
       unknown ->
         Logger.error("unknown control: #{inspect(unknown)} => #{inspect(value)}")
         []

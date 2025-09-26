@@ -17,10 +17,14 @@ const WebSocketProvider = ({ children }) => {
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
   const [messages, setMessages] = useState([]);
+  const [config, setConfig] = useState(undefined);
 
   useEffect(() => {
     if (lastMessage !== null) {
-      setMessages((prev) => prev.concat(lastMessage));
+      console.log('got', lastMessage.data)
+
+      setConfig(JSON.parse(lastMessage.data))
+      // setMessages((prev) => prev.concat(lastMessage));
     }
   }, [lastMessage]);
 
@@ -45,9 +49,11 @@ const WebSocketProvider = ({ children }) => {
         messages,
         sendMessage: sendJSONMessage,
         isConnected,
+        config,
       }}
     >
-      {children}
+
+      {config ? children : "Loading"}
     </WebSocketContext.Provider>
   );
 };
@@ -60,19 +66,17 @@ const joinWebSocket = () => {
   return context;
 };
 
-// HSL to RGB conversion utility
-const hslToRgb = (h, s, l) => {
-  h = h / 360;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n) => {
-    const k = (n + h * 12) % 12;
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color);
-  };
-  return [f(0), f(8), f(4)];
-};
+// const hslToRgb = (h, s, l) => {
+//   h = h / 360;
+//   const a = s * Math.min(l, 1 - l);
+//   const f = (n) => {
+//     const k = (n + h * 12) % 12;
+//     const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+//     return Math.round(255 * color);
+//   };
+//   return [f(0), f(8), f(4)];
+// };
 
-// Connection Status Component
 const ConnectionStatus = () => {
   const { isConnected } = joinWebSocket();
 
@@ -161,7 +165,6 @@ const SliderControl = ({
   );
 };
 
-// Toggle Component
 const ToggleControl = ({ label, value, onChange, color = "blue" }) => {
   const { sendMessage, isConnected } = joinWebSocket();
 
@@ -214,12 +217,15 @@ const ToggleControl = ({ label, value, onChange, color = "blue" }) => {
 
 // Color Controls Component
 const ColorControls = () => {
-  const [whiteHue, setWhiteHue] = useState(180);
-  const [blackHue, setBlackHue] = useState(180);
-  const [saturation, setSaturation] = useState(1.0);
-  const [brightness, setBrightness] = useState(0.5);
-  const [fade, setFade] = useState(1.0);
-  const [colorCycle, setColorCycle] = useState(false);
+  const { config } = joinWebSocket();
+  const [whiteHue, setWhiteHue] = useState(config.white);
+  const [blackHue, setBlackHue] = useState(config.black);
+  const [saturation, setSaturation] = useState(config.saturation);
+  const [brightness, setBrightness] = useState(config.brightness);
+  const [fade, setFade] = useState(config.fade);
+  const [colorCycle, setColorCycle] = useState(config.cycle);
+  const [scale, setScale] = useState(config.scale);
+  const [decay, setDecay] = useState(config.decay);
 
   // Calculate current color
   const whiteColor = `hsl(${whiteHue} ${saturation * 100}% 50%)`;
@@ -309,6 +315,21 @@ const ColorControls = () => {
         value={colorCycle}
         onChange={setColorCycle}
         color="purple"
+      />
+      <ToggleControl
+        label="Scale"
+        value={scale}
+        onChange={setScale}
+        color="purple"
+      />
+      <SliderControl
+        label="Decay"
+        value={decay}
+        min={1}
+        max={5}
+        step={0.2}
+        onChange={setDecay}
+        color="blue"
       />
 
       <div className="mt-6 p-4 bg-gray-50 rounded-lg">

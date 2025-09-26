@@ -13,6 +13,12 @@ defmodule BlinkenLights.ColourCycle do
     GenServer.call(__MODULE__, :stop_cycle)
   end
 
+  def running? do
+    __MODULE__
+      |> GenServer.whereis()
+      |> is_pid()
+  end
+
   def init(_args) do
     {:ok, cycle(%{hue: 0})}
   end
