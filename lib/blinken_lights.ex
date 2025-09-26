@@ -1,12 +1,37 @@
 defmodule BlinkenLights do
   alias BlinkenLights.DisplayConfig
 
+  def config do
+    BlinkenLights.Capture.get_config()
+  end
+
+  def config([]) do
+    :ok
+  end
+
   def config(%DisplayConfig{} = config) do
     BlinkenLights.Capture.set_config(config)
   end
 
   def config(attrs) when is_list(attrs) do
-    BlinkenLights.Capture.set_config(attrs)
+    {actions, config} = Keyword.split(attrs, [:colour_cycle])
+
+    with {:ok, config} <- BlinkenLights.Capture.set_config(config) do
+      apply_actions(actions)
+      dbg(config)
+    end
+  end
+
+  defp apply_actions([]) do
+    :ok
+  end
+
+  defp apply_actions([{:colour_cycle, state} | rest]) do
+    if state,
+      do: BlinkenLights.ColourCycle.start_cycle(),
+      else: BlinkenLights.ColourCycle.stop_cycle()
+
+    apply_actions(rest)
   end
 
   def start_cycle do
