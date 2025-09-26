@@ -1,12 +1,19 @@
 defmodule BlinkenLights.Websocket do
-  def init(conn) do
+  # @behaviour Websock
+
+  def init(_) do
     IO.puts("New connection PID: #{inspect(self())}")
-    {:ok, conn}
+    {:ok, []}
   end
 
   def handle_in({client_message, [opcode: :text]}, state) do
     # Message.handle_client_message(client_message)
     dbg(client_message: client_message)
+    {:ok, state}
+  end
+
+  def handle_in({client_message, opcode}, state) do
+    dbg(in: [client_message, opcode])
     {:ok, state}
   end
 

@@ -9,15 +9,24 @@ defmodule BlinkenLights.Router do
   get "/" do
     conn
     |> put_resp_header("content-type", "text/html; charset=UTF-8")
-    |> send_resp(
-      200,
-      "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Lights</title>\n    <script src=\"/static/app.js\"></script>\n  </head>\n  <body>\n  </body>\n</html>\n"
-    )
+    |> send_resp(200, """
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Lights</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+      </head>
+      <body>
+        <div id="root"></div>
+        <script src="/static/app.js"></script>
+      </body>
+    </html>
+    """)
   end
 
   get "/websocket" do
     conn
-    |> WebSockAdapter.upgrade(BlinkenLights.Websocket, conn, timeout: 600_000)
+    |> WebSockAdapter.upgrade(BlinkenLights.Websocket, [], timeout: 600_000)
     |> halt()
   end
 
