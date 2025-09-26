@@ -18,7 +18,6 @@ defmodule BlinkenLights do
 
     with {:ok, config} <- BlinkenLights.Capture.set_config(config) do
       apply_actions(actions)
-      dbg(config)
     end
   end
 
@@ -28,8 +27,8 @@ defmodule BlinkenLights do
 
   defp apply_actions([{:colour_cycle, state} | rest]) do
     if state,
-      do: BlinkenLights.ColourCycle.start_cycle(),
-      else: BlinkenLights.ColourCycle.stop_cycle()
+      do: start_cycle(),
+      else: stop_cycle()
 
     apply_actions(rest)
   end

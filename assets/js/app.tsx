@@ -13,7 +13,7 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 const WebSocketContext = createContext();
 
 const WebSocketProvider = ({ children }) => {
-  const [socketUrl, setSocketUrl] = useState("ws://localhost:4000/websocket");
+  const [socketUrl, setSocketUrl] = useState(`ws://${window.location.host}/websocket`);
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
   const [messages, setMessages] = useState([]);
