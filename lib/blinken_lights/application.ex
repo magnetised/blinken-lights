@@ -8,6 +8,7 @@ defmodule BlinkenLights.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {Registry, name: BlinkenLights.PubSub, keys: :duplicate},
       {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}},
       {DynamicSupervisor, name: BlinkenLights.DynamicSupervisor, strategy: :one_for_one},
       {Bandit, plug: BlinkenLights.Router}

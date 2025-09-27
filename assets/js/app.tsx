@@ -16,19 +16,48 @@ const WebSocketProvider = ({ children }) => {
   const [socketUrl, setSocketUrl] = useState(
     `ws://${window.location.host}/websocket`,
   );
-  const { sendMessage, sendJsonMessage, lastMessage, lastJsonMessage, readyState } = useWebSocket(socketUrl, {
-    shouldReconnect: (closeEvent) => true,
+  const { sendJsonMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
+    shouldReconnect: (_closeEvent) => true,
   });
 
-  const [messages, setMessages] = useState([]);
-  const [config, setConfig] = useState(undefined);
+  const [ready, setReady] = useState(false);
+
+  const [whiteHue, setWhiteHue] = useState(0);
+  const [blackHue, setBlackHue] = useState(0);
+  const [saturation, setSaturation] = useState(0);
+  const [brightness, setBrightness] = useState(0);
+  const [fade, setFade] = useState(0);
+  const [colorCycle, setColorCycle] = useState(false);
+  const [scale, setScale] = useState(false);
+  const [decay, setDecay] = useState(0);
+
+  const setters = {
+    white: setWhiteHue,
+    black: setBlackHue,
+    saturation: setSaturation,
+    brightness: setBrightness,
+    fade: setFade,
+    cycle: setColorCycle,
+    scale: setScale,
+    decay: setDecay,
+  };
+
+  const syncState = (state) => {
+    for (const [key, value] of Object.entries(state)) {
+      if (setters.hasOwnProperty(key)) {
+        setters[key](value);
+      }
+    }
+  };
 
   useEffect(() => {
     if (lastMessage !== null) {
-      console.log("got", lastMessage.data);
+      const { control, msg } = JSON.parse(lastMessage.data);
 
-      setConfig(JSON.parse(lastMessage.data));
-      // setMessages((prev) => prev.concat(lastMessage));
+      if (control === "initial-state") {
+        setReady(true);
+      }
+      syncState(msg);
     }
   }, [lastMessage]);
 
@@ -42,21 +71,31 @@ const WebSocketProvider = ({ children }) => {
 
   const isConnected = () => readyState == ReadyState.OPEN;
 
-  // const sendJSONMessage = (msg) => {
-  //   sendMessage(JSON.stringify(msg));
-  // };
-
   return (
     <WebSocketContext.Provider
       value={{
         readyState,
-        messages,
         sendMessage: sendJsonMessage,
         isConnected,
-        config,
+        whiteHue,
+        setWhiteHue,
+        blackHue,
+        setBlackHue,
+        saturation,
+        setSaturation,
+        brightness,
+        setBrightness,
+        fade,
+        setFade,
+        colorCycle,
+        setColorCycle,
+        scale,
+        setScale,
+        decay,
+        setDecay,
       }}
     >
-      {config ? children : "Loading"}
+      {ready ? children : "Loading"}
     </WebSocketContext.Provider>
   );
 };
@@ -211,15 +250,24 @@ const ToggleControl = ({ label, value, onChange, color = "blue" }) => {
 
 // Color Controls Component
 const ColorControls = () => {
-  const { config } = joinWebSocket();
-  const [whiteHue, setWhiteHue] = useState(config.white);
-  const [blackHue, setBlackHue] = useState(config.black);
-  const [saturation, setSaturation] = useState(config.saturation);
-  const [brightness, setBrightness] = useState(config.brightness);
-  const [fade, setFade] = useState(config.fade);
-  const [colorCycle, setColorCycle] = useState(config.cycle);
-  const [scale, setScale] = useState(config.scale);
-  const [decay, setDecay] = useState(config.decay);
+  const {
+    whiteHue,
+    setWhiteHue,
+    blackHue,
+    setBlackHue,
+    saturation,
+    setSaturation,
+    brightness,
+    setBrightness,
+    fade,
+    setFade,
+    colorCycle,
+    setColorCycle,
+    scale,
+    setScale,
+    decay,
+    setDecay,
+  } = joinWebSocket();
 
   const l = 50 + (1 - saturation) * 50;
   // Calculate current color
@@ -233,11 +281,15 @@ const ColorControls = () => {
           <div
             className="grow h-24 rounded-lg border-2 border-gray-300 shadow-inner p-6 mt-2 text-xs text-gray-500"
             style={{ backgroundColor: whiteColor }}
-          >white</div>
+          >
+            white
+          </div>
           <div
             className="grow h-24 rounded-lg border-2 border-gray-300 shadow-inner p-6 mt-2 text-xs text-gray-500"
             style={{ backgroundColor: blackColor }}
-          >black</div>
+          >
+            black
+          </div>
         </div>
       </div>
 

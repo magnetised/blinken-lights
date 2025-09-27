@@ -19,6 +19,10 @@ defmodule BlinkenLights do
     with {:ok, config} <- BlinkenLights.Capture.set_config(config) do
       apply_actions(actions)
     end
+
+    Registry.dispatch(BlinkenLights.PubSub, :config, fn entries ->
+      for {pid, _} <- entries, do: send(pid, {:config_change, attrs})
+    end)
   end
 
   defp apply_actions([]) do

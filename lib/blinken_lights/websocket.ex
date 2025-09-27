@@ -5,9 +5,11 @@ defmodule BlinkenLights.Websocket do
 
   def init(_) do
     IO.puts("New connection PID: #{inspect(self())}")
+    {:ok, _} = Registry.register(BlinkenLights.PubSub, :config, [])
     {:ok, config} = BlinkenLights.config()
     cycle? = BlinkenLights.ColourCycle.running?()
-    {:ok, msg} = config |> Map.from_struct() |> Map.put(:cycle, cycle?) |> Jason.encode()
+    data = config |> Map.from_struct() |> Map.put(:cycle, cycle?)
+    {:ok, msg} = Jason.encode(%{control: "initial-state", msg: data})
     {:push, [{:text, msg}], []}
   end
 
@@ -23,6 +25,11 @@ defmodule BlinkenLights.Websocket do
   def handle_in({client_message, opcode}, state) do
     dbg(in: [client_message, opcode])
     {:ok, state}
+  end
+
+  def handle_info({:config_change, config}, state) do
+    {:ok, msg} = Jason.encode(%{control: "config-change", msg: Map.new(config)})
+    {:push, [{:text, msg}], state}
   end
 
   def handle_info({:text, server_message}, state) do
