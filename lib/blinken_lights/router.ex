@@ -14,7 +14,7 @@ defmodule BlinkenLights.Router do
     <html>
       <head>
         <title>Lights</title>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="/static/app.css" />
       </head>
       <body>
         <div id="root"></div>

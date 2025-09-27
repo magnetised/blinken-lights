@@ -16,7 +16,7 @@ defmodule BlinkenLights do
   def config(attrs) when is_list(attrs) do
     {actions, config} = Keyword.split(attrs, [:colour_cycle])
 
-    with {:ok, config} <- BlinkenLights.Capture.set_config(config) do
+    with {:ok, _config} <- BlinkenLights.Capture.set_config(config) do
       apply_actions(actions)
     end
 

@@ -37,7 +37,7 @@ const WebSocketProvider = ({ children }) => {
     saturation: setSaturation,
     brightness: setBrightness,
     fade: setFade,
-    cycle: setColorCycle,
+    colour_cycle: setColorCycle,
     scale: setScale,
     decay: setDecay,
   };
@@ -172,7 +172,10 @@ const SliderControl = ({
     <div className="mb-6">
       <div className="flex justify-between items-center mb-2">
         <label className="text-sm font-medium text-gray-700">{label}</label>
-        <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+        <span
+          className="text-sm font-mono bg-gray-100 px-2 py-1 rounded"
+          style={{ color: "black" }}
+        >
           {value.toFixed(step < 1 ? 2 : 0)}
           {unit}
         </span>
@@ -186,8 +189,8 @@ const SliderControl = ({
           value={value}
           onChange={handleChange}
           disabled={!isConnected() || disabled}
-          className={`w-full h-2 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
-            bg-gradient-to-r from-gray-300 to-${color}-500`}
+          // className={`w-full h-2 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-gray-300 to-${color}-500`}
+          className="w-full range range-neutral range-lg [--range-fill:0]"
           style={{
             background:
               label === "White Hue" || label === "Black Hue"
@@ -215,7 +218,6 @@ const ToggleControl = ({ label, value, onChange, color = "blue" }) => {
     const newValue = !value;
     onChange(newValue);
 
-    // Send WebSocket message
     if (isConnected()) {
       sendMessage({
         type: "control_update",
@@ -230,19 +232,20 @@ const ToggleControl = ({ label, value, onChange, color = "blue" }) => {
     <div className="mb-6">
       <div className="flex justify-between items-center">
         <label className="text-sm font-medium text-gray-700">{label}</label>
-        <button
-          onClick={handleToggle}
+        <input
+          type="checkbox"
+          checked={value}
+          onChange={handleToggle}
           disabled={!isConnected()}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-${color}-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-            value ? `bg-${color}-600` : "bg-gray-200"
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-              value ? "translate-x-6" : "translate-x-1"
-            }`}
-          />
-        </button>
+          className="toggle toggle-lg toggle-neutral"
+          style={{ color: "black" }}
+          // className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-${color}-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${ value ? `bg-${color}-600` : "bg-gray-200" }`}
+        />
+        {/* <span */}
+        {/*   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${ */}
+        {/*     value ? "translate-x-6" : "translate-x-1" */}
+        {/*   }`} */}
+        {/* /> */}
       </div>
     </div>
   );

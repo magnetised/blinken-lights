@@ -7,7 +7,8 @@ defmodule BlinkenLights.MixProject do
       version: "0.1.0",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
@@ -26,7 +27,12 @@ defmodule BlinkenLights.MixProject do
       {:bandit, "~> 1.0"},
       {:plug, "~> 1.0"},
       {:websock_adapter, "~> 0.5"},
-      {:esbuild, "~> 0.10.0"}
+      {:esbuild, "~> 0.10.0"},
+      {:tailwind, "~> 0.4.0"}
     ]
+  end
+
+  defp aliases do
+    [run: ["esbuild default", "tailwind default", "run --no-halt"]]
   end
 end
