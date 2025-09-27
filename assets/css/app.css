@@ -2,3 +2,6 @@
 @plugin "daisyui";
 /* @import "tailwindcss/components"; */
 /* @import "tailwindcss/utilities"; */
+html {
+  @apply text-gray-800;
+}
