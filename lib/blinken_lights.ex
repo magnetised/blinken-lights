@@ -16,8 +16,8 @@ defmodule BlinkenLights do
   def config(attrs) when is_list(attrs) do
     {actions, config} = Keyword.split(attrs, [:colour_cycle])
 
-    with {:ok, _config} <- BlinkenLights.Capture.set_config(config) do
-      apply_actions(actions)
+    with {:ok, config} <- BlinkenLights.Capture.set_config(config) do
+      apply_actions(actions, config)
     end
 
     Registry.dispatch(BlinkenLights.PubSub, :config, fn entries ->
@@ -25,20 +25,20 @@ defmodule BlinkenLights do
     end)
   end
 
-  defp apply_actions([]) do
+  defp apply_actions([], _config) do
     :ok
   end
 
-  defp apply_actions([{:colour_cycle, state} | rest]) do
+  defp apply_actions([{:colour_cycle, state} | rest], config) do
     if state,
-      do: start_cycle(),
+      do: start_cycle(config),
       else: stop_cycle()
 
-    apply_actions(rest)
+    apply_actions(rest, config)
   end
 
-  def start_cycle do
-    BlinkenLights.ColourCycle.start()
+  def start_cycle(config) do
+    BlinkenLights.ColourCycle.start(config)
   end
 
   def stop_cycle do

@@ -1,34 +1,45 @@
 defmodule BlinkenLights.ColourCycle do
   use GenServer, restart: :transient
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(config) do
+    GenServer.start_link(__MODULE__, config, name: __MODULE__)
   end
 
-  def start do
-    DynamicSupervisor.start_child(BlinkenLights.DynamicSupervisor, {__MODULE__, []})
+  def start(config) do
+    DynamicSupervisor.start_child(BlinkenLights.DynamicSupervisor, {__MODULE__, config})
   end
 
   def stop do
-    GenServer.call(__MODULE__, :stop_cycle)
+    case GenServer.whereis(__MODULE__) do
+      nil ->
+        :ok
+
+      pid when is_pid(pid) ->
+        GenServer.call(pid, :stop_cycle)
+    end
   end
 
   def running? do
     __MODULE__
-      |> GenServer.whereis()
-      |> is_pid()
+    |> GenServer.whereis()
+    |> is_pid()
   end
 
-  def init(_args) do
-    {:ok, cycle(%{hue: 0})}
+  def init(config) do
+    %{white: white, black: black} = config
+    {:ok, %{white: white, black: black}, {:continue, :start}}
   end
 
-  def handle_continue(:stop_cycle,  state) do
+  def handle_continue(:start, state) do
+    {:noreply, cycle(state)}
+  end
+
+  def handle_continue(:stop_cycle, state) do
     {:stop, :normal, state}
   end
 
-  def handle_call(:stop_cycle, _from,  state) do
-    {:reply,  :ok, state, {:continue, :stop_cycle}}
+  def handle_call(:stop_cycle, _from, state) do
+    {:reply, :ok, state, {:continue, :stop_cycle}}
   end
 
   def handle_info(:cycle, state) do
@@ -36,23 +47,20 @@ defmodule BlinkenLights.ColourCycle do
   end
 
   defp cycle(state) do
-    {white, black, state} = next(state)
+    state =
+      %{white: white, black: black} =
+      state |> next(:white) |> next(:black)
+
     BlinkenLights.config(white: white, black: black)
+
     _ref = Process.send_after(self(), :cycle, 100)
+
     state
   end
 
-  defp next(%{hue: hue} = state) do
-    white = rem(hue + 1, 360)
-    black = white - 10
-
-    black =
-      if black < 0 do
-        360 + black
-      else
-        rem(black, 360)
-      end
-
-    {white, black, %{state | hue: white}}
+  defp next(state, colour) do
+    hue = Map.fetch!(state, colour)
+    hue = :math.fmod(hue + 1, 360.0)
+    Map.put(state, colour, hue)
   end
 end
