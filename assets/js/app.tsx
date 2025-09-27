@@ -16,7 +16,9 @@ const WebSocketProvider = ({ children }) => {
   const [socketUrl, setSocketUrl] = useState(
     `ws://${window.location.host}/websocket`,
   );
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+  const { sendMessage, sendJsonMessage, lastMessage, lastJsonMessage, readyState } = useWebSocket(socketUrl, {
+    shouldReconnect: (closeEvent) => true,
+  });
 
   const [messages, setMessages] = useState([]);
   const [config, setConfig] = useState(undefined);
@@ -40,16 +42,16 @@ const WebSocketProvider = ({ children }) => {
 
   const isConnected = () => readyState == ReadyState.OPEN;
 
-  const sendJSONMessage = (msg) => {
-    sendMessage(JSON.stringify(msg));
-  };
+  // const sendJSONMessage = (msg) => {
+  //   sendMessage(JSON.stringify(msg));
+  // };
 
   return (
     <WebSocketContext.Provider
       value={{
         readyState,
         messages,
-        sendMessage: sendJSONMessage,
+        sendMessage: sendJsonMessage,
         isConnected,
         config,
       }}
@@ -229,17 +231,13 @@ const ColorControls = () => {
       <div className="mb-8">
         <div className="flex space-x-4">
           <div
-            className="w-24 h-24 rounded-lg border-2 border-gray-300 shadow-inner"
+            className="grow h-24 rounded-lg border-2 border-gray-300 shadow-inner p-6 mt-2 text-xs text-gray-500"
             style={{ backgroundColor: whiteColor }}
-          />
+          >white</div>
           <div
-            className="w-24 h-24 rounded-lg border-2 border-gray-300 shadow-inner"
+            className="grow h-24 rounded-lg border-2 border-gray-300 shadow-inner p-6 mt-2 text-xs text-gray-500"
             style={{ backgroundColor: blackColor }}
-          />
-        </div>
-        <div className="mt-2 text-xs text-gray-500">
-          <div>White keys: {whiteColor}</div>
-          <div>Black Keys: {blackColor}</div>
+          >black</div>
         </div>
       </div>
 
