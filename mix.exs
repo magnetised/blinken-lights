@@ -34,9 +34,9 @@ defmodule BlinkenLights.MixProject do
 
   defp aliases do
     [
-      run: ["cmd cargo build --release", "esbuild default", "tailwind default", "run --no-halt"],
+      # run: ["cmd cargo build --release", "esbuild default", "tailwind default", "run --no-halt"],
       lights: [
-        "cmd cargo build --release --features leds",
+        # "cmd cargo build --release --features leds",
         "esbuild default",
         "tailwind default",
         "run --no-halt"

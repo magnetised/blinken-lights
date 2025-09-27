@@ -9,9 +9,9 @@ defmodule BlinkenLights.Application do
   def start(_type, _args) do
     children = [
       {Registry, name: BlinkenLights.PubSub, keys: :duplicate},
-      {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}},
       {DynamicSupervisor, name: BlinkenLights.DynamicSupervisor, strategy: :one_for_one},
-      {Bandit, plug: BlinkenLights.Router}
+      {Bandit, plug: BlinkenLights.Router},
+      {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
