@@ -72,7 +72,7 @@ defmodule BlinkenLights.DarkMode do
     end
   end
 
-  defp converge(:light, _display_config, %{target: nil, active: :light} = state) do
+  defp converge(mode, _display_config, %{target: nil, active: mode} = state) do
     {state, []}
   end
 
@@ -117,6 +117,13 @@ defmodule BlinkenLights.DarkMode do
 
         {k, new_v}
       end)
+
+    state =
+      if changes == [] do
+        %{state | target: nil}
+      else
+        state
+      end
 
     {state, changes}
   end
