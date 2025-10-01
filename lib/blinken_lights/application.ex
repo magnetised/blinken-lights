@@ -13,7 +13,7 @@ defmodule BlinkenLights.Application do
       {Bandit, plug: BlinkenLights.Router},
       {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}},
       {BlinkenLights.DarkMode,
-       start_time: ~T[18:00:00], end_time: ~T[08:00:00], dark_target: [brightness: 0.1]}
+       start_time: ~T[18:00:00], end_time: ~T[08:00:00], dark_target: [brightness: 0.05]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

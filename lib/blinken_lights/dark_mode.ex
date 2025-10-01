@@ -17,7 +17,7 @@ defmodule BlinkenLights.DarkMode do
       0..seconds_after_midnight(args[:end_time])
     ]
 
-    state = %{dark_target: args[:dark_target], step: args[:step] || 0.05}
+    state = %{dark_target: args[:dark_target], step: args[:step] || 0.01}
 
     Map.merge(
       state,
@@ -110,7 +110,7 @@ defmodule BlinkenLights.DarkMode do
       |> Enum.map(fn {k, v} ->
         new_v =
           cond do
-            abs(v) < 0.01 -> target[k]
+            abs(v) < step -> target[k]
             v > 0 -> Float.round(Map.fetch!(display_config, k) + step, 3)
             v < 0 -> Float.round(Map.fetch!(display_config, k) - step, 3)
           end
@@ -136,7 +136,7 @@ defmodule BlinkenLights.DarkMode do
   end
 
   defp schedule_check(state) do
-    Process.send_after(self(), :check_time, 60_000)
+    Process.send_after(self(), :check_time, 20_000)
     state
   end
 end
