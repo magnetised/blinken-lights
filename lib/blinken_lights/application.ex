@@ -12,6 +12,8 @@ defmodule BlinkenLights.Application do
       {DynamicSupervisor, name: BlinkenLights.DynamicSupervisor, strategy: :one_for_one},
       {Bandit, plug: BlinkenLights.Router},
       {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}},
+      {BlinkenLights.DarkMode,
+       start_time: ~T[18:00:00], end_time: ~T[08:00:00], dark_target: [brightness: 0.1]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
