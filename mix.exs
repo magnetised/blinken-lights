@@ -28,7 +28,8 @@ defmodule BlinkenLights.MixProject do
       {:plug, "~> 1.0"},
       {:websock_adapter, "~> 0.5"},
       {:esbuild, "~> 0.10.0"},
-      {:tailwind, "~> 0.4.0"}
+      {:tailwind, "~> 0.4.0"},
+      {:tz, "~> 0.28"}
     ]
   end
 

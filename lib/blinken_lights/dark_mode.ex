@@ -3,6 +3,8 @@ defmodule BlinkenLights.DarkMode do
   alias BlinkenLights.DisplayConfig
   @midnight 24 * 3600 - 1
 
+  require Logger
+
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
@@ -45,7 +47,7 @@ defmodule BlinkenLights.DarkMode do
           state
 
         {state, changes} ->
-          IO.inspect(dark_mode: changes)
+          Logger.debug("Darkmode changes: #{inspect(changes)}")
           :ok = BlinkenLights.config(changes)
           state
       end
@@ -77,6 +79,7 @@ defmodule BlinkenLights.DarkMode do
   end
 
   defp converge(:dark, display_config, %{active: :light} = state) do
+          Logger.debug("Darkmode activating")
     display_config = resolve_config(display_config)
 
     converge(:dark, display_config, %{
@@ -88,6 +91,7 @@ defmodule BlinkenLights.DarkMode do
   end
 
   defp converge(:light, display_config, %{active: :dark} = state) do
+          Logger.debug("Darkmode de-activating")
     display_config = resolve_config(display_config)
 
     converge(:light, display_config, %{
