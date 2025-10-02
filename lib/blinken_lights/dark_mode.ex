@@ -32,6 +32,10 @@ defmodule BlinkenLights.DarkMode do
     )
   end
 
+  def now do
+    DateTime.now("Europe/Belfast", Tz.TimeZoneDatabase) |> DateTime.to_time()
+  end
+
   @impl GenServer
   def init(args) do
     state = new(args)
@@ -60,7 +64,7 @@ defmodule BlinkenLights.DarkMode do
     config
   end
 
-  def adjust(time \\ Time.utc_now(), display_config, state) do
+  def adjust(time \\ now(), display_config, state) do
     converge(mode(time, state), display_config, state)
   end
 
@@ -79,7 +83,7 @@ defmodule BlinkenLights.DarkMode do
   end
 
   defp converge(:dark, display_config, %{active: :light} = state) do
-          Logger.debug("Darkmode activating")
+    Logger.debug("Darkmode activating")
     display_config = resolve_config(display_config)
 
     converge(:dark, display_config, %{
@@ -91,7 +95,7 @@ defmodule BlinkenLights.DarkMode do
   end
 
   defp converge(:light, display_config, %{active: :dark} = state) do
-          Logger.debug("Darkmode de-activating")
+    Logger.debug("Darkmode de-activating")
     display_config = resolve_config(display_config)
 
     converge(:light, display_config, %{
