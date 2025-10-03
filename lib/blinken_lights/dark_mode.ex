@@ -33,7 +33,7 @@ defmodule BlinkenLights.DarkMode do
   end
 
   def now do
-    DateTime.now("Europe/Belfast", Tz.TimeZoneDatabase) |> DateTime.to_time()
+    DateTime.now!("Europe/Belfast", Tz.TimeZoneDatabase) |> DateTime.to_time()
   end
 
   @impl GenServer
