@@ -8,6 +8,8 @@ import React, {
 } from "react";
 import ReactDOM from "react-dom/client";
 
+import { ColorWheel } from "./picker.jsx";
+
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
 const WebSocketContext = createContext();
@@ -254,22 +256,29 @@ const ColorControls = () => {
 
   const l = 50 + (1 - saturation) * 50;
   // Calculate current color
-  const whiteColor = `hsl(${whiteHue} ${saturation * 100}% ${l}%)`;
-  const blackColor = `hsl(${blackHue} ${saturation * 100}% ${l}%)`;
+  const whiteColor = () => `hsl(${whiteHue} ${saturation * 100}% ${l}%)`;
+  const blackColor = () => `hsl(${blackHue} ${saturation * 100}% ${l}%)`;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
+      <ColorWheel
+        width={400}
+        height={400}
+        value={whiteHue}
+        onChange={setWhiteHue}
+        disabled={colorCycle}
+      />
       <div className="mb-8">
         <div className="flex space-x-4">
           <div
             className="grow h-24 rounded-lg border-2 border-gray-300 shadow-inner p-6 mt-2 text-xs text-gray-500"
-            style={{ backgroundColor: whiteColor }}
+            style={{ backgroundColor: whiteColor() }}
           >
             white
           </div>
           <div
             className="grow h-24 rounded-lg border-2 border-gray-300 shadow-inner p-6 mt-2 text-xs text-gray-500"
-            style={{ backgroundColor: blackColor }}
+            style={{ backgroundColor: blackColor() }}
           >
             black
           </div>
