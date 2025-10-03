@@ -1,4 +1,5 @@
 defmodule BlinkenLights.Websocket do
+  alias BlinkenLights.DisplayConfig
   # @behaviour Websock
 
   require Logger
@@ -7,8 +8,7 @@ defmodule BlinkenLights.Websocket do
     IO.puts("New connection PID: #{inspect(self())}")
     {:ok, _} = Registry.register(BlinkenLights.PubSub, :config, [])
     {:ok, config} = BlinkenLights.config()
-    cycle? = BlinkenLights.ColourCycle.running?()
-    data = config |> Map.from_struct() |> Map.put(:cycle, cycle?)
+    {:ok, data} = DisplayConfig.for_websocket(config)
     {:ok, msg} = Jason.encode(%{control: "initial-state", msg: data})
     {:push, [{:text, msg}], []}
   end

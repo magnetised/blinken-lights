@@ -1,6 +1,8 @@
 defmodule BlinkenLights.Capture do
   use GenServer
 
+  alias BlinkenLights.DisplayConfig
+
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
@@ -41,7 +43,7 @@ defmodule BlinkenLights.Capture do
   end
 
   defp start_port(config) do
-    {:ok, json} = Jason.encode(config)
+    {:ok, json} = DisplayConfig.encode_rust(config)
 
     Port.open({:spawn_executable, exe_path()}, [
       :stream,
@@ -55,7 +57,7 @@ defmodule BlinkenLights.Capture do
   defp exe_path, do: Path.expand("../../target/release/leds", __DIR__) |> to_charlist()
 
   defp send_config({port, config}) do
-    {:ok, json} = Jason.encode(config)
+    {:ok, json} = DisplayConfig.encode_rust(config)
     true = Port.command(port, IO.iodata_to_binary([json, "\n"]))
   end
 end
