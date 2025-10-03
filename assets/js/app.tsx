@@ -252,8 +252,25 @@ const ColorControls = () => {
     setScale,
     decay,
     setDecay,
+    sendMessage,
+    isConnected,
   } = joinWebSocket();
 
+  const handleChange = (name, setter) => {
+    return (newValue) => {
+      setter(newValue);
+
+      // Send WebSocket message
+      if (isConnected()) {
+        sendMessage({
+          type: "control_update",
+          control: name,
+          value: newValue,
+          timestamp: Date.now(),
+        });
+      }
+    };
+  };
   const l = 50 + (1 - saturation) * 50;
   // Calculate current color
   const whiteColor = () => `hsl(${whiteHue} ${saturation * 100}% ${l}%)`;
@@ -262,51 +279,26 @@ const ColorControls = () => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <ColorWheel
-        width={400}
-        height={400}
-        value={whiteHue}
-        onChange={setWhiteHue}
+        size={window.innerWidth / 2}
+        width={600}
+        height={600}
+        whiteValue={whiteHue}
+        blackValue={blackHue}
+        onWhiteChange={handleChange("white_hue", setWhiteHue)}
+        onBlackChange={handleChange("black_hue", setBlackHue)}
         disabled={colorCycle}
+        whiteColor={whiteColor()}
+        blackColor={blackColor()}
       />
-      <div className="mb-8">
-        <div className="flex space-x-4">
-          <div
-            className="grow h-24 rounded-lg border-2 border-gray-300 shadow-inner p-6 mt-2 text-xs text-gray-500"
-            style={{ backgroundColor: whiteColor() }}
-          >
-            white
-          </div>
-          <div
-            className="grow h-24 rounded-lg border-2 border-gray-300 shadow-inner p-6 mt-2 text-xs text-gray-500"
-            style={{ backgroundColor: blackColor() }}
-          >
-            black
-          </div>
-        </div>
-      </div>
-
-      <SliderControl
-        label="White Hue"
-        value={whiteHue}
-        min={0}
-        max={360}
-        step={1}
-        onChange={setWhiteHue}
-        unit="°"
-        color="red"
-        disabled={colorCycle}
-      />
-      <SliderControl
-        label="Black Hue"
-        value={blackHue}
-        min={0}
-        max={360}
-        step={1}
-        onChange={setBlackHue}
-        unit="°"
-        color="red"
-        disabled={colorCycle}
-      />
+      {/* <ColorWheel */}
+      {/*   size={window.innerWidth / 2} */}
+      {/*   width={400} */}
+      {/*   height={400} */}
+      {/*   value={blackHue} */}
+      {/*   onChange={handleChange("black_hue", setBlackHue)} */}
+      {/*   disabled={colorCycle} */}
+      {/*   innerColor={blackColor()} */}
+      {/* /> */}
 
       <SliderControl
         label="Saturation"
