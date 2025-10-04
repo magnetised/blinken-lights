@@ -5,3 +5,8 @@
 html {
   @apply text-gray-800;
 }
+
+html,
+body {
+  user-select: none;
+}

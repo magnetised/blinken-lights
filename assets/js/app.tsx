@@ -276,6 +276,14 @@ const ColorControls = () => {
   const whiteColor = () => `hsl(${whiteHue} ${saturation * 100}% ${l}%)`;
   const blackColor = () => `hsl(${blackHue} ${saturation * 100}% ${l}%)`;
 
+  const round = (v) => {
+    return Math.round((v + Number.EPSILON) * 1000) / 1000;
+  };
+
+  const Label = ({ value }) => {
+    const percent = (v) => `${(v * 100).toFixed(1)}%`;
+    return <div className="text-white">{percent(value)}</div>;
+  };
   return (
     <div className="">
       <ColorWheel
@@ -291,43 +299,37 @@ const ColorControls = () => {
         blackColor={blackColor()}
       />
 
-      <div className="p-6">
-        <Slider
-          height={300}
-          value={saturation}
-          onChange={handleChange("saturation", setSaturation)}
-        />
+      <div className="p-6 flex gap-6 text-center justify-evenly justify-center">
+        <div className="flex flex-col justify-center">
+          <div>SATURATION</div>
+          <Slider
+            height={300}
+            value={saturation}
+            onChange={handleChange("saturation", setSaturation)}
+          />
+          <Label value={saturation} />
+        </div>
+        <div className="flex flex-col justify-center">
+          <div>BRIGHTNESS</div>
+          <div className="flex grow justify-center">
+            <Slider
+              height={300}
+              value={brightness}
+              onChange={handleChange("brightness", setBrightness)}
+            />
+          </div>
+          <Label value={brightness} />
+        </div>
+        <div className="flex flex-col justify-center">
+          <div>FADE</div>
+          <Slider
+            height={300}
+            value={fade}
+            onChange={handleChange("fade", setFade)}
+          />
+          <Label value={fade} />
+        </div>
       </div>
-
-      <SliderControl
-        label="Saturation"
-        value={saturation}
-        min={0}
-        max={1}
-        step={0.01}
-        onChange={setSaturation}
-        color="green"
-      />
-
-      <SliderControl
-        label="Brightness"
-        value={brightness}
-        min={0}
-        max={1}
-        step={0.01}
-        onChange={setBrightness}
-        color="yellow"
-      />
-
-      <SliderControl
-        label="Fade"
-        value={fade}
-        min={0}
-        max={1}
-        step={0.01}
-        onChange={setFade}
-        color="blue"
-      />
 
       <ToggleControl
         label="Color Cycle"

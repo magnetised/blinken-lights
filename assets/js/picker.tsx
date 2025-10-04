@@ -41,6 +41,7 @@ const Selector = ({ value, onChange, centre, radius, borderColor }) => {
   };
 
   const color = () => `hsl(${value} 100% 50%)`;
+
   return (
     <Circle
       radius={selectorRadius}
@@ -100,14 +101,15 @@ export const ColorWheel = ({
     ctx.beginPath();
     ctx.arc(x, y, mainRadius - wheelThickness, 0, 360);
     ctx.closePath();
-    ctx.fillStyle = "#EBEBEB";
+    ctx.fillStyle = "oklch(0.21 0.034 264.665)";
     ctx.fill();
     ctx.fillStrokeShape(shape);
   };
   const div = React.useRef(null);
   React.useEffect(() => {
-    setWidth(div.current.clientWidth);
+    setWidth(div.current.clientWidth * 0.75);
   }, []);
+
   const arcRadius = mainRadius - wheelThickness - 20;
   return (
     <div ref={div}>
@@ -199,7 +201,7 @@ export const Slider = ({ height, value, onChange }) => {
           cornerRadius={barWidth / 2}
           stroke={"#eee"}
           fill={"#fff"}
-          opacity={0.3}
+          opacity={0.2}
         />
         <Rect
           x={middleX - barWidth / 2}
@@ -217,6 +219,8 @@ export const Slider = ({ height, value, onChange }) => {
           onDragMove={onDrag}
           dragBoundFunc={dragBound}
           transformsEnabled={"position"}
+          width={totalWidth}
+          height={totalWidth}
           x={middleX}
           y={top + height * (1.0 - value)}
         >
@@ -233,14 +237,14 @@ export const Slider = ({ height, value, onChange }) => {
             innerRadius={innerR}
             outerRadius={innerR + 18}
             fill={"#fff"}
-            opacity={0.3}
+            opacity={0.05}
             x={0}
             y={0}
           />
           <Ring
             innerRadius={innerR}
             outerRadius={innerR + 18}
-            opacity={0.2}
+            opacity={0.05}
             strokeWidth={1}
             stroke={"#fff"}
             x={0}
