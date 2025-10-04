@@ -13,10 +13,12 @@ defmodule BlinkenLights.Router do
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Lights</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" href="/static/app.css" />
+        <title>Lights</title>
       </head>
-      <body>
+      <body class="bg-gray-900">
         <div id="root"></div>
         <script src="/static/app.js"></script>
       </body>

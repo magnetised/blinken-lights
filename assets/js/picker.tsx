@@ -1,6 +1,16 @@
 import React from "react";
-import { Layer, Stage, Shape, Circle, Arc } from "react-konva";
+import {
+  Layer,
+  Stage,
+  Shape,
+  Circle,
+  Arc,
+  Rect,
+  Group,
+  Ring,
+} from "react-konva";
 
+const selectorRadius = 20;
 const Selector = ({ value, onChange, centre, radius, borderColor }) => {
   const r = Math.PI / 180;
   const hw = centre;
@@ -33,7 +43,7 @@ const Selector = ({ value, onChange, centre, radius, borderColor }) => {
   const color = () => `hsl(${value} 100% 50%)`;
   return (
     <Circle
-      radius={20}
+      radius={selectorRadius}
       stroke={borderColor}
       strokeWidth={3}
       fill={color()}
@@ -158,5 +168,86 @@ export const ColorWheel = ({
         </Layer>
       </Stage>
     </div>
+  );
+};
+
+export const Slider = ({ height, value, onChange }) => {
+  const totalWidth = 36 * 2 + 4;
+  const barWidth = 2;
+  const top = totalWidth / 2;
+  const middleX = 1 + totalWidth / 2;
+
+  const onDrag = (e) => {
+    const value = 1.0 - (e.target.attrs.y - top) / height;
+    onChange(value);
+  };
+  const dragBound = (pos) => {
+    return {
+      x: middleX,
+      y: pos.y < top ? top : pos.y > top + height ? top + height : pos.y,
+    };
+  };
+  const innerR = 8 + 10;
+  return (
+    <Stage width={totalWidth} height={height + top * 2}>
+      <Layer>
+        <Rect
+          x={middleX - barWidth / 2}
+          y={top}
+          width={barWidth}
+          height={height}
+          cornerRadius={barWidth / 2}
+          stroke={"#eee"}
+          fill={"#fff"}
+          opacity={0.3}
+        />
+        <Rect
+          x={middleX - barWidth / 2}
+          y={top + height * (1.0 - value)}
+          width={barWidth}
+          height={height - height * (1.0 - value)}
+          cornerRadius={barWidth / 2}
+          stroke={"#eee"}
+          fill={"#fff"}
+          opacity={0.8}
+        />
+        <Group
+          draggable
+          onDragStart={onDrag}
+          onDragMove={onDrag}
+          dragBoundFunc={dragBound}
+          transformsEnabled={"position"}
+          x={middleX}
+          y={top + height * (1.0 - value)}
+        >
+          <Circle
+            radius={8}
+            stroke={"#000"}
+            strokeWidth={0}
+            fill={"#fff"}
+            opacity={0.9}
+            x={0}
+            y={0}
+          />
+          <Ring
+            innerRadius={innerR}
+            outerRadius={innerR + 18}
+            fill={"#fff"}
+            opacity={0.3}
+            x={0}
+            y={0}
+          />
+          <Ring
+            innerRadius={innerR}
+            outerRadius={innerR + 18}
+            opacity={0.2}
+            strokeWidth={1}
+            stroke={"#fff"}
+            x={0}
+            y={0}
+          />
+        </Group>
+      </Layer>
+    </Stage>
   );
 };

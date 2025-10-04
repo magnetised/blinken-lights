@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import ReactDOM from "react-dom/client";
 
-import { ColorWheel } from "./picker.jsx";
+import { ColorWheel, Slider } from "./picker.jsx";
 
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
@@ -114,7 +114,7 @@ const ConnectionStatus = () => {
   const { isConnected } = joinWebSocket();
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+    <div className="">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <div
@@ -277,7 +277,7 @@ const ColorControls = () => {
   const blackColor = () => `hsl(${blackHue} ${saturation * 100}% ${l}%)`;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="">
       <ColorWheel
         size={window.innerWidth / 2}
         width={600}
@@ -290,15 +290,14 @@ const ColorControls = () => {
         whiteColor={whiteColor()}
         blackColor={blackColor()}
       />
-      {/* <ColorWheel */}
-      {/*   size={window.innerWidth / 2} */}
-      {/*   width={400} */}
-      {/*   height={400} */}
-      {/*   value={blackHue} */}
-      {/*   onChange={handleChange("black_hue", setBlackHue)} */}
-      {/*   disabled={colorCycle} */}
-      {/*   innerColor={blackColor()} */}
-      {/* /> */}
+
+      <div className="p-6">
+        <Slider
+          height={300}
+          value={saturation}
+          onChange={handleChange("saturation", setSaturation)}
+        />
+      </div>
 
       <SliderControl
         label="Saturation"
@@ -363,8 +362,8 @@ const App = () => {
   return (
     <WebSocketProvider>
       <ConnectionStatus />
-      <div className="min-h-screen bg-gray-100 p-4">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen">
+        <div className="">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ColorControls />
           </div>
