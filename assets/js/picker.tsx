@@ -105,7 +105,9 @@ export const ColorWheel = ({
     ctx.fill();
     ctx.fillStrokeShape(shape);
   };
+
   const div = React.useRef(null);
+
   React.useEffect(() => {
     setWidth(div.current.clientWidth * 0.75);
   }, []);

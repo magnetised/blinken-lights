@@ -216,7 +216,7 @@ const ToggleControl = ({ label, value, onChange, color = "blue" }) => {
   };
 
   return (
-    <div className="mb-12">
+    <div className="_mb-12">
       <div className="flex justify-between items-center">
         <label className="text-sm font-medium text-gray-700">{label}</label>
         <input
@@ -285,32 +285,28 @@ const ColorControls = () => {
     return <div className="text-white">{percent(value)}</div>;
   };
   const sliderHeight = 200;
+  const saturationDiv = React.useRef(null);
+  const [saturationHeight, setSaturationHeight] = useState(0);
+  React.useEffect(() => {
+    setSaturationHeight(saturationDiv.current.clientWidth / 2);
+  }, []);
   return (
-    <div className="">
-      <div className="p-6 flex flex-row gap-6">
-        <div className="flex grow flex-col justify-center">
-          <ColorWheel
-            size={window.innerWidth / 2}
-            width={600}
-            height={600}
-            whiteValue={whiteHue}
-            blackValue={blackHue}
-            onWhiteChange={handleChange("white_hue", setWhiteHue)}
-            onBlackChange={handleChange("black_hue", setBlackHue)}
-            disabled={colorCycle}
-            whiteColor={whiteColor()}
-            blackColor={blackColor()}
-          />
-        </div>
-        <div className="flex flex-col justify-center text-center">
+    <div className="" ref={saturationDiv}>
+      <div className="p-3 flex flex-row gap-3">
+        <div className="flex flex-col grow justify-center">
           <div className="flex flex-col justify-center">
-            <div>SATURATION</div>
-            <Slider
-              height={200}
-              value={saturation}
-              onChange={handleChange("saturation", setSaturation)}
+            <ColorWheel
+              size={window.innerWidth / 2}
+              width={600}
+              height={600}
+              whiteValue={whiteHue}
+              blackValue={blackHue}
+              onWhiteChange={handleChange("white_hue", setWhiteHue)}
+              onBlackChange={handleChange("black_hue", setBlackHue)}
+              disabled={colorCycle}
+              whiteColor={whiteColor()}
+              blackColor={blackColor()}
             />
-            <Label value={saturation} />
           </div>
           <div className="">
             <ToggleControl
@@ -319,6 +315,17 @@ const ColorControls = () => {
               onChange={setColorCycle}
               color="purple"
             />
+          </div>
+        </div>
+        <div className="flex flex-col justify-center text-center">
+          <div className="flex flex-col justify-center">
+            {/* <div>SATURATION</div> */}
+            <Slider
+              height={saturationHeight}
+              value={saturation}
+              onChange={handleChange("saturation", setSaturation)}
+            />
+            {/* <Label value={saturation} /> */}
           </div>
         </div>
       </div>
