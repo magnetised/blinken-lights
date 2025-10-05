@@ -284,36 +284,51 @@ const ColorControls = () => {
     const percent = (v) => `${(v * 100).toFixed(1)}%`;
     return <div className="text-white">{percent(value)}</div>;
   };
+  const sliderHeight = 200;
   return (
     <div className="">
-      <ColorWheel
-        size={window.innerWidth / 2}
-        width={600}
-        height={600}
-        whiteValue={whiteHue}
-        blackValue={blackHue}
-        onWhiteChange={handleChange("white_hue", setWhiteHue)}
-        onBlackChange={handleChange("black_hue", setBlackHue)}
-        disabled={colorCycle}
-        whiteColor={whiteColor()}
-        blackColor={blackColor()}
-      />
+      <div className="p-6 flex flex-row gap-6">
+        <div className="flex grow flex-col justify-center">
+          <ColorWheel
+            size={window.innerWidth / 2}
+            width={600}
+            height={600}
+            whiteValue={whiteHue}
+            blackValue={blackHue}
+            onWhiteChange={handleChange("white_hue", setWhiteHue)}
+            onBlackChange={handleChange("black_hue", setBlackHue)}
+            disabled={colorCycle}
+            whiteColor={whiteColor()}
+            blackColor={blackColor()}
+          />
+        </div>
+        <div className="flex flex-col justify-center text-center">
+          <div className="flex flex-col justify-center">
+            <div>SATURATION</div>
+            <Slider
+              height={200}
+              value={saturation}
+              onChange={handleChange("saturation", setSaturation)}
+            />
+            <Label value={saturation} />
+          </div>
+          <div className="">
+            <ToggleControl
+              label="Color Cycle"
+              value={colorCycle}
+              onChange={setColorCycle}
+              color="purple"
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="p-6 flex gap-6 text-center justify-evenly justify-center">
-        <div className="flex flex-col justify-center">
-          <div>SATURATION</div>
-          <Slider
-            height={300}
-            value={saturation}
-            onChange={handleChange("saturation", setSaturation)}
-          />
-          <Label value={saturation} />
-        </div>
         <div className="flex flex-col justify-center">
           <div>BRIGHTNESS</div>
           <div className="flex grow justify-center">
             <Slider
-              height={300}
+              height={sliderHeight}
               value={brightness}
               onChange={handleChange("brightness", setBrightness)}
             />
@@ -323,7 +338,7 @@ const ColorControls = () => {
         <div className="flex flex-col justify-center">
           <div>FADE</div>
           <Slider
-            height={300}
+            height={sliderHeight}
             value={fade}
             onChange={handleChange("fade", setFade)}
           />
@@ -331,12 +346,6 @@ const ColorControls = () => {
         </div>
       </div>
 
-      <ToggleControl
-        label="Color Cycle"
-        value={colorCycle}
-        onChange={setColorCycle}
-        color="purple"
-      />
       <ToggleControl
         label="Scale"
         value={scale}

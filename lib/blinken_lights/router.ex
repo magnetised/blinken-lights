@@ -15,6 +15,7 @@ defmodule BlinkenLights.Router do
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width">
+        <meta name="theme-color" content="#000">
         <link rel="stylesheet" href="/static/app.css" />
         <title>Lights</title>
       </head>

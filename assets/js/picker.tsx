@@ -112,7 +112,7 @@ export const ColorWheel = ({
 
   const arcRadius = mainRadius - wheelThickness - 20;
   return (
-    <div ref={div}>
+    <div className="flex justify-center align-center" ref={div}>
       <Stage width={size} height={size}>
         <Layer>
           <Shape
