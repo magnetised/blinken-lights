@@ -177,7 +177,7 @@ export const Slider = ({ height, value, onChange }) => {
   const innerR = 18;
   const outerR = innerR + 18;
   const totalWidth = outerR * 2 + 4;
-  const finalHeight = height - 2 * outerR;
+  const finalHeight = height - 2 * outerR - 2;
   const barWidth = 2;
   const top = totalWidth / 2;
   const middleX = 1 + totalWidth / 2;
@@ -199,7 +199,7 @@ export const Slider = ({ height, value, onChange }) => {
     };
   };
   return (
-    <Stage width={totalWidth} height={height + top * 2}>
+    <Stage width={totalWidth} height={height}>
       <Layer>
         <Rect
           x={middleX - barWidth / 2}

@@ -313,18 +313,9 @@ const ColorControls = () => {
               blackColor={blackColor()}
             />
           </div>
-          <div className="">
-            <ToggleControl
-              label="Color Cycle"
-              value={colorCycle}
-              onChange={setColorCycle}
-              color="purple"
-            />
-          </div>
         </div>
         <div className="flex flex-col justify-center text-center">
           <div className="flex flex-col justify-center">
-            {/* <div>SATURATION</div> */}
             <Slider
               height={WHEEL_SIZE}
               value={saturation}
@@ -335,6 +326,18 @@ const ColorControls = () => {
       </div>
 
       <div className="flex flex-col gap-3">
+        <div className="flex flex-col">
+          <Label name="Colour Cycle" value={colorCycle ? `ON` : "OFF"} />
+          <ScaleSlider
+            width={horizSliderWidth}
+            value={2.0}
+            toggle={colorCycle}
+            minValue={1.0}
+            maxValue={4.0}
+            onChange={() => true}
+            onToggle={handleChange("color_cycle", setColorCycle)}
+          />
+        </div>
         <div className="flex flex-col">
           <Label name="Brightness" value={brightness} />
 
