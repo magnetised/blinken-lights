@@ -6,6 +6,11 @@ html {
   @apply text-gray-800;
 }
 
+body,
+html {
+  height: 100%; /* Fill the window */
+}
+
 html,
 body {
   user-select: none;

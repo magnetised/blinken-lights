@@ -181,6 +181,7 @@ export const Slider = ({ height, value, onChange }) => {
   const barWidth = 2;
   const top = totalWidth / 2;
   const middleX = 1 + totalWidth / 2;
+  const [touching, setTouching] = React.useState(false);
 
   const onDrag = (e) => {
     const value = 1.0 - (e.target.attrs.y - top) / finalHeight;
@@ -223,6 +224,8 @@ export const Slider = ({ height, value, onChange }) => {
           draggable
           onDragStart={onDrag}
           onDragMove={onDrag}
+          onTouchStart={() => setTouching(true)}
+          onTouchEnd={() => setTouching(false)}
           dragBoundFunc={dragBound}
           transformsEnabled={"position"}
           width={totalWidth}
@@ -243,7 +246,7 @@ export const Slider = ({ height, value, onChange }) => {
             innerRadius={innerR}
             outerRadius={outerR}
             fill={"#fff"}
-            opacity={0.05}
+            opacity={touching ? 0.2 : 0.05}
             x={0}
             y={0}
           />
@@ -270,6 +273,7 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
   const barHeight = 2;
   const left = totalHeight / 2;
   const middleY = 1 + totalHeight / 2;
+  const [touching, setTouching] = React.useState(false);
 
   const onDrag = (e) => {
     const value = (e.target.attrs.x - left) / finalWidth;
@@ -312,6 +316,8 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
           draggable
           onDragStart={onDrag}
           onDragMove={onDrag}
+          onTouchStart={() => setTouching(true)}
+          onTouchEnd={() => setTouching(false)}
           dragBoundFunc={dragBound}
           transformsEnabled={"position"}
           width={width}
@@ -332,7 +338,7 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
             innerRadius={innerR}
             outerRadius={outerR}
             fill={"#fff"}
-            opacity={0.05}
+            opacity={touching ? 0.2 : 0.05}
             x={0}
             y={0}
           />
@@ -370,6 +376,7 @@ export const ScaleSlider = ({
 
   const scaledValue = (value - minValue) / maxValue;
   const sliderPos = toggle ? offPos + finalWidth * scaledValue : left;
+  const [touching, setTouching] = React.useState(false);
 
   const onDrag = (e) => {
     const x = e.target.attrs.x;
@@ -432,6 +439,8 @@ export const ScaleSlider = ({
           draggable
           onDragStart={onDrag}
           onDragMove={onDrag}
+          onTouchStart={() => setTouching(true)}
+          onTouchEnd={() => setTouching(false)}
           dragBoundFunc={dragBound}
           transformsEnabled={"position"}
           width={width}
@@ -452,7 +461,7 @@ export const ScaleSlider = ({
             innerRadius={innerR}
             outerRadius={outerR}
             fill={"#fff"}
-            opacity={0.05}
+            opacity={touching ? 0.2 : 0.05}
             x={0}
             y={0}
           />
