@@ -8,11 +8,18 @@ import React, {
 } from "react";
 import ReactDOM from "react-dom/client";
 
-import { ColorWheel, Slider } from "./picker.jsx";
+import {
+  ColorWheel,
+  HorizontalSlider,
+  ScaleSlider,
+  Slider,
+} from "./picker.jsx";
 
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
 const WebSocketContext = createContext();
+const BROWSER_WIDTH = 390;
+const WHEEL_SIZE = BROWSER_WIDTH - 120;
 
 const WebSocketProvider = ({ children }) => {
   const [socketUrl, setSocketUrl] = useState(
@@ -114,17 +121,10 @@ const ConnectionStatus = () => {
   const { isConnected } = joinWebSocket();
 
   return (
-    <div className="">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div
-            className={`w-3 h-3 rounded-full ${isConnected() ? "bg-green-500" : "bg-red-500"}`}
-          ></div>
-          <span className="font-medium">
-            WebSocket {isConnected() ? "Connected" : "Disconnected"}
-          </span>
-        </div>
-      </div>
+    <div className="fixed top-0 left-0">
+      <div
+        className={`w-3 h-3 rounded-full ${isConnected() ? "bg-green-500" : "bg-red-500"}`}
+      ></div>
     </div>
   );
 };
@@ -280,11 +280,18 @@ const ColorControls = () => {
     return Math.round((v + Number.EPSILON) * 1000) / 1000;
   };
 
-  const Label = ({ value }) => {
-    const percent = (v) => `${(v * 100).toFixed(1)}%`;
-    return <div className="text-white">{percent(value)}</div>;
+  const percent = (v) => {
+    return `${(v * 100).toFixed(1)}%`;
+  };
+  const Label = ({ name, value }) => {
+    return (
+      <div className="text-white">
+        {name} {typeof value === "string" ? value : percent(value)}
+      </div>
+    );
   };
   const sliderHeight = 200;
+  const horizSliderWidth = BROWSER_WIDTH - 36;
   const saturationDiv = React.useRef(null);
   const [saturationHeight, setSaturationHeight] = useState(0);
   React.useEffect(() => {
@@ -292,13 +299,11 @@ const ColorControls = () => {
   }, []);
   return (
     <div className="" ref={saturationDiv}>
-      <div className="p-3 flex flex-row gap-3">
-        <div className="flex flex-col grow justify-center">
+      <div className="flex flex-row gap-3">
+        <div className="flex flex-col grow">
           <div className="flex flex-col justify-center">
             <ColorWheel
-              size={window.innerWidth / 2}
-              width={600}
-              height={600}
+              size={WHEEL_SIZE}
               whiteValue={whiteHue}
               blackValue={blackHue}
               onWhiteChange={handleChange("white_hue", setWhiteHue)}
@@ -321,57 +326,45 @@ const ColorControls = () => {
           <div className="flex flex-col justify-center">
             {/* <div>SATURATION</div> */}
             <Slider
-              height={saturationHeight}
+              height={WHEEL_SIZE}
               value={saturation}
               onChange={handleChange("saturation", setSaturation)}
             />
-            {/* <Label value={saturation} /> */}
           </div>
         </div>
       </div>
 
-      <div className="p-6 flex gap-6 text-center justify-evenly justify-center">
-        <div className="flex flex-col justify-center">
-          <div>BRIGHTNESS</div>
-          <div className="flex grow justify-center">
-            <Slider
-              height={sliderHeight}
-              value={brightness}
-              onChange={handleChange("brightness", setBrightness)}
-            />
-          </div>
-          <Label value={brightness} />
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col">
+          <Label name="Brightness" value={brightness} />
+
+          <HorizontalSlider
+            width={horizSliderWidth}
+            value={brightness}
+            onChange={handleChange("brightness", setBrightness)}
+          />
         </div>
-        <div className="flex flex-col justify-center">
-          <div>FADE</div>
-          <Slider
-            height={sliderHeight}
+        <div className="flex flex-col">
+          <Label name="Fade" value={fade} />
+          <HorizontalSlider
+            width={horizSliderWidth}
             value={fade}
             onChange={handleChange("fade", setFade)}
           />
-          <Label value={fade} />
+        </div>
+        <div className="flex flex-col">
+          <Label name="Scale" value={scale ? `${decay.toFixed(1)}` : "OFF"} />
+          <ScaleSlider
+            width={horizSliderWidth}
+            value={decay}
+            toggle={scale}
+            minValue={1.0}
+            maxValue={4.0}
+            onChange={handleChange("decay", setDecay)}
+            onToggle={handleChange("scale", setScale)}
+          />
         </div>
       </div>
-
-      <ToggleControl
-        label="Scale"
-        value={scale}
-        onChange={setScale}
-        color="purple"
-      />
-      {scale ? (
-        <SliderControl
-          label="Decay"
-          value={decay}
-          min={1}
-          max={5}
-          step={0.2}
-          onChange={setDecay}
-          color="blue"
-        />
-      ) : (
-        ""
-      )}
     </div>
   );
 };
@@ -380,7 +373,7 @@ const App = () => {
   return (
     <WebSocketProvider>
       <ConnectionStatus />
-      <div className="min-h-screen">
+      <div className="min-h-screen p-3">
         <div className="">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ColorControls />

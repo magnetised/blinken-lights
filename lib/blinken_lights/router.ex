@@ -16,6 +16,9 @@ defmodule BlinkenLights.Router do
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width">
         <meta name="theme-color" content="#000">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="/static/app.css" />
         <title>Lights</title>
       </head>

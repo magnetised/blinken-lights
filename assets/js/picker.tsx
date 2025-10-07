@@ -60,7 +60,7 @@ const Selector = ({ value, onChange, centre, radius, borderColor }) => {
   );
 };
 export const ColorWheel = ({
-  container,
+  size,
   whiteValue,
   blackValue,
   onWhiteChange,
@@ -69,12 +69,10 @@ export const ColorWheel = ({
   blackColor,
   disabled,
 }) => {
-  const [size, setWidth] = React.useState(300);
+  // const [size, setWidth] = React.useState(300);
   const wheelThickness = 30;
-  const mainRadius = size / 2 - wheelThickness / 2;
-  const centre = mainRadius + wheelThickness / 4;
-  console.log(container);
-  const checkSize = () => {};
+  const mainRadius = size / 2 - wheelThickness / 4;
+  const centre = mainRadius + wheelThickness / 8;
   const drawHueSlider = (ctx, shape) => {
     var x = centre;
     var y = centre;
@@ -108,9 +106,9 @@ export const ColorWheel = ({
 
   const div = React.useRef(null);
 
-  React.useEffect(() => {
-    setWidth(div.current.clientWidth * 0.75);
-  }, []);
+  // React.useEffect(() => {
+  //   setWidth(div.current.clientWidth * 0.75);
+  // }, []);
 
   const arcRadius = mainRadius - wheelThickness - 20;
   return (
@@ -176,22 +174,29 @@ export const ColorWheel = ({
 };
 
 export const Slider = ({ height, value, onChange }) => {
-  const totalWidth = 36 * 2 + 4;
+  const innerR = 18;
+  const outerR = innerR + 18;
+  const totalWidth = outerR * 2 + 4;
+  const finalHeight = height - 2 * outerR;
   const barWidth = 2;
   const top = totalWidth / 2;
   const middleX = 1 + totalWidth / 2;
 
   const onDrag = (e) => {
-    const value = 1.0 - (e.target.attrs.y - top) / height;
+    const value = 1.0 - (e.target.attrs.y - top) / finalHeight;
     onChange(value);
   };
   const dragBound = (pos) => {
     return {
       x: middleX,
-      y: pos.y < top ? top : pos.y > top + height ? top + height : pos.y,
+      y:
+        pos.y < top
+          ? top
+          : pos.y > top + finalHeight
+            ? top + finalHeight
+            : pos.y,
     };
   };
-  const innerR = 8 + 10;
   return (
     <Stage width={totalWidth} height={height + top * 2}>
       <Layer>
@@ -199,7 +204,7 @@ export const Slider = ({ height, value, onChange }) => {
           x={middleX - barWidth / 2}
           y={top}
           width={barWidth}
-          height={height}
+          height={finalHeight}
           cornerRadius={barWidth / 2}
           stroke={"#eee"}
           fill={"#fff"}
@@ -207,11 +212,10 @@ export const Slider = ({ height, value, onChange }) => {
         />
         <Rect
           x={middleX - barWidth / 2}
-          y={top + height * (1.0 - value)}
+          y={top + finalHeight * (1.0 - value)}
           width={barWidth}
-          height={height - height * (1.0 - value)}
+          height={finalHeight - finalHeight * (1.0 - value)}
           cornerRadius={barWidth / 2}
-          stroke={"#eee"}
           fill={"#fff"}
           opacity={0.8}
         />
@@ -224,7 +228,7 @@ export const Slider = ({ height, value, onChange }) => {
           width={totalWidth}
           height={totalWidth}
           x={middleX}
-          y={top + height * (1.0 - value)}
+          y={top + finalHeight * (1.0 - value)}
         >
           <Circle
             radius={8}
@@ -237,7 +241,7 @@ export const Slider = ({ height, value, onChange }) => {
           />
           <Ring
             innerRadius={innerR}
-            outerRadius={innerR + 18}
+            outerRadius={outerR}
             fill={"#fff"}
             opacity={0.05}
             x={0}
@@ -245,7 +249,216 @@ export const Slider = ({ height, value, onChange }) => {
           />
           <Ring
             innerRadius={innerR}
-            outerRadius={innerR + 18}
+            outerRadius={outerR}
+            opacity={0.05}
+            strokeWidth={1}
+            stroke={"#fff"}
+            x={0}
+            y={0}
+          />
+        </Group>
+      </Layer>
+    </Stage>
+  );
+};
+
+export const HorizontalSlider = ({ width, value, onChange }) => {
+  const innerR = 18;
+  const outerR = innerR + 18;
+  const totalHeight = outerR * 2 + 4;
+  const finalWidth = width - 2 * outerR - 2;
+  const barHeight = 2;
+  const left = totalHeight / 2;
+  const middleY = 1 + totalHeight / 2;
+
+  const onDrag = (e) => {
+    const value = (e.target.attrs.x - left) / finalWidth;
+    onChange(value);
+  };
+  const dragBound = (pos) => {
+    return {
+      y: middleY,
+      x:
+        pos.x < left
+          ? left
+          : pos.x > left + finalWidth
+            ? left + finalWidth
+            : pos.x,
+    };
+  };
+  return (
+    <Stage width={width} height={totalHeight}>
+      <Layer>
+        <Rect
+          x={left}
+          y={middleY - barHeight / 2}
+          width={finalWidth}
+          height={barHeight}
+          cornerRadius={barHeight / 2}
+          stroke={"#eee"}
+          fill={"#fff"}
+          opacity={0.2}
+        />
+        <Rect
+          x={left}
+          y={middleY - barHeight / 2}
+          width={finalWidth * value}
+          height={barHeight}
+          cornerRadius={barHeight / 2}
+          fill={"#fff"}
+          opacity={0.8}
+        />
+        <Group
+          draggable
+          onDragStart={onDrag}
+          onDragMove={onDrag}
+          dragBoundFunc={dragBound}
+          transformsEnabled={"position"}
+          width={width}
+          height={totalHeight}
+          x={left + finalWidth * value}
+          y={middleY}
+        >
+          <Circle
+            radius={8}
+            stroke={"#000"}
+            strokeWidth={0}
+            fill={"#fff"}
+            opacity={0.9}
+            x={0}
+            y={0}
+          />
+          <Ring
+            innerRadius={innerR}
+            outerRadius={outerR}
+            fill={"#fff"}
+            opacity={0.05}
+            x={0}
+            y={0}
+          />
+          <Ring
+            innerRadius={innerR}
+            outerRadius={outerR}
+            opacity={0.05}
+            strokeWidth={1}
+            stroke={"#fff"}
+            x={0}
+            y={0}
+          />
+        </Group>
+      </Layer>
+    </Stage>
+  );
+};
+export const ScaleSlider = ({
+  width,
+  value,
+  minValue,
+  maxValue,
+  onChange,
+  toggle,
+  onToggle,
+}) => {
+  const innerR = 18;
+  const outerR = innerR + 18;
+  const totalHeight = outerR * 2 + 4;
+  const finalWidth = width - 2 * outerR - 2;
+  const barHeight = 2;
+  const left = totalHeight / 2;
+  const middleY = 1 + totalHeight / 2;
+  const offPos = left + outerR;
+
+  const scaledValue = (value - minValue) / maxValue;
+  const sliderPos = toggle ? offPos + finalWidth * scaledValue : left;
+
+  const onDrag = (e) => {
+    const x = e.target.attrs.x;
+    if (x >= offPos) {
+      onToggle(true);
+      const value = ((x - offPos) / finalWidth) * maxValue + minValue;
+      onChange(value);
+    } else {
+      onToggle(false);
+    }
+  };
+  const dragBound = (pos) => {
+    let x;
+    if (pos.x < left) {
+      x = left;
+    } else if (pos.x > left + finalWidth) {
+      x = left + finalWidth;
+    } else if (pos.x < offPos) {
+      x = left;
+    } else {
+      x = pos.x;
+    }
+    return {
+      y: middleY,
+      x: x,
+    };
+  };
+  return (
+    <Stage width={width} height={totalHeight}>
+      <Layer>
+        <Rect
+          x={left}
+          y={middleY - barHeight / 2}
+          width={finalWidth}
+          height={barHeight}
+          cornerRadius={barHeight / 2}
+          stroke={"#eee"}
+          fill={"#fff"}
+          opacity={0.2}
+        />
+        <Rect
+          x={offPos}
+          y={middleY - barHeight / 2}
+          width={toggle ? finalWidth * scaledValue : 0}
+          height={barHeight}
+          cornerRadius={0}
+          fill={"#fff"}
+          opacity={toggle ? 0.8 : 0}
+        />
+        <Rect
+          x={offPos}
+          y={middleY - innerR}
+          width={1}
+          height={2 * innerR}
+          cornerRadius={barHeight / 2}
+          fill={"#fff"}
+          opacity={0.8}
+        />
+        <Group
+          draggable
+          onDragStart={onDrag}
+          onDragMove={onDrag}
+          dragBoundFunc={dragBound}
+          transformsEnabled={"position"}
+          width={width}
+          height={totalHeight}
+          x={sliderPos}
+          y={middleY}
+        >
+          <Circle
+            radius={8}
+            stroke={"#000"}
+            strokeWidth={0}
+            fill={"#fff"}
+            opacity={0.9}
+            x={0}
+            y={0}
+          />
+          <Ring
+            innerRadius={innerR}
+            outerRadius={outerR}
+            fill={"#fff"}
+            opacity={0.05}
+            x={0}
+            y={0}
+          />
+          <Ring
+            innerRadius={innerR}
+            outerRadius={outerR}
             opacity={0.05}
             strokeWidth={1}
             stroke={"#fff"}
