@@ -294,78 +294,89 @@ const ColorControls = () => {
   const horizSliderWidth = BROWSER_WIDTH - 36;
   const saturationDiv = React.useRef(null);
   const [saturationHeight, setSaturationHeight] = useState(0);
+  const [globalTouch, setGlobalTouch] = useState(false);
   React.useEffect(() => {
     setSaturationHeight(saturationDiv.current.clientWidth / 2);
   }, []);
   return (
-    <div className="" ref={saturationDiv}>
-      <div className="flex flex-row gap-3">
-        <div className="flex flex-col grow">
-          <div className="flex flex-col justify-center">
-            <ColorWheel
-              size={WHEEL_SIZE}
-              whiteValue={whiteHue}
-              blackValue={blackHue}
-              onWhiteChange={handleChange("white_hue", setWhiteHue)}
-              onBlackChange={handleChange("black_hue", setBlackHue)}
-              disabled={colorCycle}
-              whiteColor={whiteColor()}
-              blackColor={blackColor()}
-            />
+    <div
+      onTouchStart={() => setGlobalTouch(true)}
+      onTouchEnd={() => setGlobalTouch(false)}
+    >
+      <div className="" ref={saturationDiv}>
+        <div className="flex flex-row gap-3">
+          <div className="flex flex-col grow">
+            <div className="flex flex-col justify-center">
+              <ColorWheel
+                size={WHEEL_SIZE}
+                whiteValue={whiteHue}
+                blackValue={blackHue}
+                onWhiteChange={handleChange("white_hue", setWhiteHue)}
+                onBlackChange={handleChange("black_hue", setBlackHue)}
+                disabled={colorCycle}
+                whiteColor={whiteColor()}
+                blackColor={blackColor()}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col justify-center text-center">
+            <div className="flex flex-col justify-center">
+              <Slider
+                globalTouch={globalTouch}
+                height={WHEEL_SIZE}
+                value={saturation}
+                onChange={handleChange("saturation", setSaturation)}
+              />
+            </div>
           </div>
         </div>
-        <div className="flex flex-col justify-center text-center">
-          <div className="flex flex-col justify-center">
-            <Slider
-              height={WHEEL_SIZE}
-              value={saturation}
-              onChange={handleChange("saturation", setSaturation)}
+
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col">
+            <Label name="Colour Cycle" value={colorCycle ? `ON` : "OFF"} />
+            <ScaleSlider
+              width={horizSliderWidth}
+              value={2.0}
+              toggle={colorCycle}
+              minValue={1.0}
+              maxValue={4.0}
+              onChange={() => true}
+              onToggle={handleChange("color_cycle", setColorCycle)}
+              globalTouch={globalTouch}
             />
           </div>
-        </div>
-      </div>
+          <div className="flex flex-col">
+            <Label name="Brightness" value={brightness} />
 
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col">
-          <Label name="Colour Cycle" value={colorCycle ? `ON` : "OFF"} />
-          <ScaleSlider
-            width={horizSliderWidth}
-            value={2.0}
-            toggle={colorCycle}
-            minValue={1.0}
-            maxValue={4.0}
-            onChange={() => true}
-            onToggle={handleChange("color_cycle", setColorCycle)}
-          />
-        </div>
-        <div className="flex flex-col">
-          <Label name="Brightness" value={brightness} />
-
-          <HorizontalSlider
-            width={horizSliderWidth}
-            value={brightness}
-            onChange={handleChange("brightness", setBrightness)}
-          />
-        </div>
-        <div className="flex flex-col">
-          <Label name="Fade" value={fade} />
-          <HorizontalSlider
-            width={horizSliderWidth}
-            value={fade}
-            onChange={handleChange("fade", setFade)}
-          />
-        </div>
-        <div className="flex flex-col">
-          <Label name="Scale" value={scale ? `${decay.toFixed(1)}` : "OFF"} />
-          <ScaleSlider
-            width={horizSliderWidth}
-            value={decay}
-            toggle={scale}
-            minValue={1.0}
-            maxValue={4.0}
-            onChange={handleChange("decay", setDecay)}
-            onToggle={handleChange("scale", setScale)}
-          />
+            <HorizontalSlider
+              globalTouch={globalTouch}
+              width={horizSliderWidth}
+              value={brightness}
+              onChange={handleChange("brightness", setBrightness)}
+            />
+          </div>
+          <div className="flex flex-col">
+            <Label name="Fade" value={fade} />
+            <HorizontalSlider
+              globalTouch={globalTouch}
+              width={horizSliderWidth}
+              value={fade}
+              onChange={handleChange("fade", setFade)}
+            />
+          </div>
+          <div className="flex flex-col">
+            <Label name="Scale" value={scale ? `${decay.toFixed(1)}` : "OFF"} />
+            <ScaleSlider
+              width={horizSliderWidth}
+              value={decay}
+              toggle={scale}
+              minValue={1.0}
+              maxValue={4.0}
+              globalTouch={globalTouch}
+              onChange={handleChange("decay", setDecay)}
+              onToggle={handleChange("scale", setScale)}
+            />
+          </div>
         </div>
       </div>
     </div>

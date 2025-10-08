@@ -115,14 +115,7 @@ export const ColorWheel = ({
     <div className="flex justify-center align-center" ref={div}>
       <Stage width={size} height={size}>
         <Layer>
-          <Shape
-            width={size}
-            height={size}
-            sceneFunc={drawHueSlider}
-            onClick={(e) => {
-              console.log("onclick");
-            }}
-          />
+          <Shape width={size} height={size} sceneFunc={drawHueSlider} />
         </Layer>
         <Layer>
           <Selector
@@ -173,7 +166,7 @@ export const ColorWheel = ({
   );
 };
 
-export const Slider = ({ height, value, onChange }) => {
+export const Slider = ({ height, value, onChange, globalTouch }) => {
   const innerR = 18;
   const outerR = innerR + 18;
   const totalWidth = outerR * 2 + 4;
@@ -202,7 +195,11 @@ export const Slider = ({ height, value, onChange }) => {
     };
   };
   return (
-    <Stage width={totalWidth} height={height}>
+    <Stage
+      width={totalWidth}
+      height={height}
+      onTouchEnd={() => setTouching(false)}
+    >
       <Layer>
         <Rect
           x={middleX - barWidth / 2}
@@ -256,7 +253,7 @@ export const Slider = ({ height, value, onChange }) => {
             innerRadius={innerR}
             outerRadius={outerR}
             fill={"#fff"}
-            opacity={touching ? 0.2 : 0.05}
+            opacity={globalTouch && touching ? 0.2 : 0.05}
             x={outerR}
             y={outerR}
           />
@@ -275,7 +272,7 @@ export const Slider = ({ height, value, onChange }) => {
   );
 };
 
-export const HorizontalSlider = ({ width, value, onChange }) => {
+export const HorizontalSlider = ({ width, value, onChange, globalTouch }) => {
   const innerR = 18;
   const outerR = innerR + 18;
   const totalHeight = outerR * 2 + 4;
@@ -304,7 +301,11 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
     };
   };
   return (
-    <Stage width={width} height={totalHeight}>
+    <Stage
+      width={width}
+      height={totalHeight}
+      onTouchEnd={() => setTouching(false)}
+    >
       <Layer>
         <Rect
           x={left}
@@ -358,7 +359,7 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
             innerRadius={innerR}
             outerRadius={outerR}
             fill={"#fff"}
-            opacity={touching ? 0.2 : 0.05}
+            opacity={globalTouch && touching ? 0.2 : 0.05}
             x={outerR}
             y={outerR}
           />
@@ -384,6 +385,7 @@ export const ScaleSlider = ({
   onChange,
   toggle,
   onToggle,
+  globalTouch,
 }) => {
   const innerR = 18;
   const outerR = innerR + 18;
@@ -425,7 +427,11 @@ export const ScaleSlider = ({
     };
   };
   return (
-    <Stage width={width} height={totalHeight}>
+    <Stage
+      width={width}
+      height={totalHeight}
+      onTouchEnd={() => setTouching(false)}
+    >
       <Layer>
         <Rect
           x={left}
@@ -488,7 +494,7 @@ export const ScaleSlider = ({
             innerRadius={innerR}
             outerRadius={outerR}
             fill={"#fff"}
-            opacity={touching ? 0.2 : 0.05}
+            opacity={globalTouch && touching ? 0.2 : 0.05}
             x={outerR}
             y={outerR}
           />
