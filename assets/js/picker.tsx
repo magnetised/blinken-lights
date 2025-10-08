@@ -184,18 +184,21 @@ export const Slider = ({ height, value, onChange }) => {
   const [touching, setTouching] = React.useState(false);
 
   const onDrag = (e) => {
-    const value = 1.0 - (e.target.attrs.y - top) / finalHeight;
+    const value = 1.0 - (e.target.attrs.y - top + outerR) / finalHeight;
     onChange(value);
   };
   const dragBound = (pos) => {
+    let y;
+    if (pos.y < top - outerR) {
+      y = top - outerR;
+    } else if (pos.y > top + finalHeight - outerR) {
+      y = top + finalHeight - outerR;
+    } else {
+      y = pos.y;
+    }
     return {
-      x: middleX,
-      y:
-        pos.y < top
-          ? top
-          : pos.y > top + finalHeight
-            ? top + finalHeight
-            : pos.y,
+      x: middleX - outerR,
+      y: y,
     };
   };
   return (
@@ -230,8 +233,8 @@ export const Slider = ({ height, value, onChange }) => {
           transformsEnabled={"position"}
           width={totalWidth}
           height={totalWidth}
-          x={middleX}
-          y={top + finalHeight * (1.0 - value)}
+          x={middleX - outerR}
+          y={top - outerR + finalHeight * (1.0 - value)}
         >
           <Circle
             radius={8}
@@ -239,16 +242,16 @@ export const Slider = ({ height, value, onChange }) => {
             strokeWidth={0}
             fill={"#fff"}
             opacity={0.9}
-            x={0}
-            y={0}
+            x={outerR}
+            y={outerR}
           />
           <Ring
             innerRadius={innerR}
             outerRadius={outerR}
             fill={"#fff"}
             opacity={touching ? 0.2 : 0.05}
-            x={0}
-            y={0}
+            x={outerR}
+            y={outerR}
           />
           <Ring
             innerRadius={innerR}
@@ -256,8 +259,8 @@ export const Slider = ({ height, value, onChange }) => {
             opacity={0.05}
             strokeWidth={1}
             stroke={"#fff"}
-            x={0}
-            y={0}
+            x={outerR}
+            y={outerR}
           />
         </Group>
       </Layer>
@@ -276,18 +279,21 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
   const [touching, setTouching] = React.useState(false);
 
   const onDrag = (e) => {
-    const value = (e.target.attrs.x - left) / finalWidth;
+    const value = (e.target.attrs.x - left + outerR) / finalWidth;
     onChange(value);
   };
   const dragBound = (pos) => {
+    let x;
+    if (pos.x < left - outerR) {
+      x = left - outerR;
+    } else if (pos.x > left + finalWidth - outerR) {
+      x = left + finalWidth - outerR;
+    } else {
+      x = pos.x;
+    }
     return {
-      y: middleY,
-      x:
-        pos.x < left
-          ? left
-          : pos.x > left + finalWidth
-            ? left + finalWidth
-            : pos.x,
+      y: middleY - outerR,
+      x: x,
     };
   };
   return (
@@ -320,10 +326,10 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
           onTouchEnd={() => setTouching(false)}
           dragBoundFunc={dragBound}
           transformsEnabled={"position"}
-          width={width}
+          width={totalHeight}
           height={totalHeight}
-          x={left + finalWidth * value}
-          y={middleY}
+          x={left - outerR + finalWidth * value}
+          y={middleY - outerR}
         >
           <Circle
             radius={8}
@@ -331,16 +337,16 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
             strokeWidth={0}
             fill={"#fff"}
             opacity={0.9}
-            x={0}
-            y={0}
+            x={outerR}
+            y={outerR}
           />
           <Ring
             innerRadius={innerR}
             outerRadius={outerR}
             fill={"#fff"}
             opacity={touching ? 0.2 : 0.05}
-            x={0}
-            y={0}
+            x={outerR}
+            y={outerR}
           />
           <Ring
             innerRadius={innerR}
@@ -348,8 +354,8 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
             opacity={0.05}
             strokeWidth={1}
             stroke={"#fff"}
-            x={0}
-            y={0}
+            x={outerR}
+            y={outerR}
           />
         </Group>
       </Layer>
@@ -380,9 +386,9 @@ export const ScaleSlider = ({
 
   const onDrag = (e) => {
     const x = e.target.attrs.x;
-    if (x >= offPos) {
+    if (x >= offPos - outerR) {
       onToggle(true);
-      const value = ((x - offPos) / finalWidth) * maxValue + minValue;
+      const value = ((x - offPos + outerR) / finalWidth) * maxValue + minValue;
       onChange(value);
     } else {
       onToggle(false);
@@ -390,17 +396,17 @@ export const ScaleSlider = ({
   };
   const dragBound = (pos) => {
     let x;
-    if (pos.x < left) {
-      x = left;
-    } else if (pos.x > left + finalWidth) {
-      x = left + finalWidth;
-    } else if (pos.x < offPos) {
-      x = left;
+    if (pos.x < left - outerR) {
+      x = left - outerR;
+    } else if (pos.x > left + finalWidth - outerR) {
+      x = left + finalWidth - outerR;
+    } else if (pos.x < offPos - outerR) {
+      x = left - outerR;
     } else {
       x = pos.x;
     }
     return {
-      y: middleY,
+      y: middleY - outerR,
       x: x,
     };
   };
@@ -443,10 +449,10 @@ export const ScaleSlider = ({
           onTouchEnd={() => setTouching(false)}
           dragBoundFunc={dragBound}
           transformsEnabled={"position"}
-          width={width}
+          width={totalHeight}
           height={totalHeight}
-          x={sliderPos}
-          y={middleY}
+          x={sliderPos - outerR}
+          y={middleY - outerR}
         >
           <Circle
             radius={8}
@@ -454,16 +460,16 @@ export const ScaleSlider = ({
             strokeWidth={0}
             fill={"#fff"}
             opacity={0.9}
-            x={0}
-            y={0}
+            x={outerR}
+            y={outerR}
           />
           <Ring
             innerRadius={innerR}
             outerRadius={outerR}
             fill={"#fff"}
             opacity={touching ? 0.2 : 0.05}
-            x={0}
-            y={0}
+            x={outerR}
+            y={outerR}
           />
           <Ring
             innerRadius={innerR}
@@ -471,8 +477,8 @@ export const ScaleSlider = ({
             opacity={0.05}
             strokeWidth={1}
             stroke={"#fff"}
-            x={0}
-            y={0}
+            x={outerR}
+            y={outerR}
           />
         </Group>
       </Layer>
