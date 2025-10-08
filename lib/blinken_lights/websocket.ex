@@ -47,6 +47,9 @@ defmodule BlinkenLights.Websocket do
       "color_cycle" ->
         [colour_cycle: value]
 
+      "color_cycle_speed" ->
+        [colour_cycle_speed: value]
+
       "white_hue" ->
         [white: value]
 

@@ -19,6 +19,16 @@ defmodule BlinkenLights.ColourCycle do
     end
   end
 
+  def set_speed(speed) do
+    case GenServer.whereis(__MODULE__) do
+      nil ->
+        :ok
+
+      pid when is_pid(pid) ->
+        GenServer.call(pid, {:set_speed, speed})
+    end
+  end
+
   def running? do
     __MODULE__
     |> GenServer.whereis()
@@ -26,8 +36,8 @@ defmodule BlinkenLights.ColourCycle do
   end
 
   def init(config) do
-    %{white: white, black: black} = config
-    {:ok, %{white: white, black: black}, {:continue, :start}}
+    %{white: white, black: black, colour_cycle_speed: speed} = config
+    {:ok, %{white: white, black: black, speed: speed}, {:continue, :start}}
   end
 
   def handle_continue(:start, state) do
@@ -36,6 +46,10 @@ defmodule BlinkenLights.ColourCycle do
 
   def handle_continue(:stop_cycle, state) do
     {:stop, :normal, state}
+  end
+
+  def handle_call({:set_speed, speed}, _from, state) do
+    {:reply, :ok, %{state | speed: speed}}
   end
 
   def handle_call(:stop_cycle, _from, state) do
@@ -48,12 +62,12 @@ defmodule BlinkenLights.ColourCycle do
 
   defp cycle(state) do
     state =
-      %{white: white, black: black} =
+      %{white: white, black: black, speed: speed} =
       state |> next(:white) |> next(:black)
 
     BlinkenLights.config(white: white, black: black)
 
-    _ref = Process.send_after(self(), :cycle, 100)
+    _ref = Process.send_after(self(), :cycle, max(100, round((1 - speed) * 1000)))
 
     state
   end

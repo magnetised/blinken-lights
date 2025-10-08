@@ -37,6 +37,7 @@ const WebSocketProvider = ({ children }) => {
   const [brightness, setBrightness] = useState(0);
   const [fade, setFade] = useState(0);
   const [colorCycle, setColorCycle] = useState(false);
+  const [colorCycleSpeed, setColorCycleSpeed] = useState(false);
   const [scale, setScale] = useState(false);
   const [decay, setDecay] = useState(0);
 
@@ -47,6 +48,7 @@ const WebSocketProvider = ({ children }) => {
     brightness: setBrightness,
     fade: setFade,
     colour_cycle: setColorCycle,
+    colour_cycle_speed: setColorCycleSpeed,
     scale: setScale,
     decay: setDecay,
   };
@@ -64,6 +66,7 @@ const WebSocketProvider = ({ children }) => {
       const { control, msg } = JSON.parse(lastMessage.data);
 
       if (control === "initial-state") {
+        console.log("initial-state");
         setReady(true);
       }
       syncState(msg);
@@ -98,6 +101,8 @@ const WebSocketProvider = ({ children }) => {
         setFade,
         colorCycle,
         setColorCycle,
+        colorCycleSpeed,
+        setColorCycleSpeed,
         scale,
         setScale,
         decay,
@@ -248,6 +253,8 @@ const ColorControls = () => {
     setFade,
     colorCycle,
     setColorCycle,
+    colorCycleSpeed,
+    setColorCycleSpeed,
     scale,
     setScale,
     decay,
@@ -336,11 +343,11 @@ const ColorControls = () => {
             <Label name="Colour Cycle" value={colorCycle ? `ON` : "OFF"} />
             <ScaleSlider
               width={horizSliderWidth}
-              value={2.0}
+              value={colorCycleSpeed}
               toggle={colorCycle}
-              minValue={1.0}
-              maxValue={4.0}
-              onChange={() => true}
+              minValue={0}
+              maxValue={1.0}
+              onChange={handleChange("color_cycle_speed", setColorCycleSpeed)}
               onToggle={handleChange("color_cycle", setColorCycle)}
               globalTouch={globalTouch}
             />

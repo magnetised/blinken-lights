@@ -397,14 +397,20 @@ export const ScaleSlider = ({
   const offPos = left + outerR;
 
   const scaledValue = (value - minValue) / maxValue;
-  const sliderPos = toggle ? offPos + finalWidth * scaledValue : left;
+  const sliderPos = toggle
+    ? offPos + (finalWidth - offPos + outerR) * scaledValue
+    : left;
   const [touching, setTouching] = React.useState(false);
 
   const onDrag = (e) => {
     const x = e.target.attrs.x;
     if (x >= offPos - outerR) {
       onToggle(true);
-      const value = ((x - offPos + outerR) / finalWidth) * maxValue + minValue;
+      const rawValue = Math.min(
+        1.0,
+        (x - offPos + outerR) / (finalWidth - offPos + outerR),
+      );
+      const value = rawValue * maxValue + minValue;
       onChange(value);
     } else {
       onToggle(false);
@@ -412,12 +418,12 @@ export const ScaleSlider = ({
   };
   const dragBound = (pos) => {
     let x;
-    if (pos.x < left - outerR) {
-      x = left - outerR;
+    if (pos.x < 0) {
+      x = 0; // left - outerR;
+    } else if (pos.x < offPos - outerR) {
+      x = 0; //left - outerR;
     } else if (pos.x > left + finalWidth - outerR) {
       x = left + finalWidth - outerR;
-    } else if (pos.x < offPos - outerR) {
-      x = left - outerR;
     } else {
       x = pos.x;
     }
@@ -446,7 +452,7 @@ export const ScaleSlider = ({
         <Rect
           x={offPos}
           y={middleY - barHeight / 2}
-          width={toggle ? finalWidth * scaledValue : 0}
+          width={sliderPos - offPos}
           height={barHeight}
           cornerRadius={0}
           fill={"#fff"}

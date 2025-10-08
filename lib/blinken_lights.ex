@@ -15,7 +15,7 @@ defmodule BlinkenLights do
 
   def config(attrs) when is_list(attrs) do
     with {:ok, config} <- BlinkenLights.Capture.set_config(attrs) do
-      dbg(config)
+      # dbg(config)
       apply_actions(attrs, config)
     end
 
@@ -32,6 +32,12 @@ defmodule BlinkenLights do
     if state,
       do: start_cycle(config),
       else: stop_cycle()
+
+    apply_actions(rest, config)
+  end
+
+  defp apply_actions([{:colour_cycle_speed, speed} | rest], config) do
+    BlinkenLights.ColourCycle.set_speed(speed)
 
     apply_actions(rest, config)
   end

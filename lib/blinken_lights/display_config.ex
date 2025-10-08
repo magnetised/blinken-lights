@@ -10,7 +10,8 @@ defmodule BlinkenLights.DisplayConfig do
             decay: 1.8,
             scale: false,
             dark_mode: false,
-            colour_cycle: false
+            colour_cycle: false,
+            colour_cycle_speed: 0.0
 
   @rust_keys ~w[white black saturation fade brightness sensitivity decay scale]a
 
