@@ -237,6 +237,13 @@ export const Slider = ({ height, value, onChange }) => {
           y={top - outerR + finalHeight * (1.0 - value)}
         >
           <Circle
+            x={outerR}
+            y={outerR}
+            radius={outerR}
+            fill={"#fff"}
+            opacity={0.01}
+          />
+          <Circle
             radius={8}
             stroke={"#000"}
             strokeWidth={0}
@@ -331,6 +338,13 @@ export const HorizontalSlider = ({ width, value, onChange }) => {
           x={left - outerR + finalWidth * value}
           y={middleY - outerR}
         >
+          <Circle
+            x={outerR}
+            y={outerR}
+            radius={outerR}
+            fill={"#fff"}
+            opacity={0.01}
+          />
           <Circle
             radius={8}
             stroke={"#000"}
@@ -454,6 +468,13 @@ export const ScaleSlider = ({
           x={sliderPos - outerR}
           y={middleY - outerR}
         >
+          <Circle
+            x={outerR}
+            y={outerR}
+            radius={outerR}
+            fill={"#fff"}
+            opacity={0.01}
+          />
           <Circle
             radius={8}
             stroke={"#000"}
