@@ -66,7 +66,6 @@ const WebSocketProvider = ({ children }) => {
       const { control, msg } = JSON.parse(lastMessage.data);
 
       if (control === "initial-state") {
-        console.log("initial-state");
         setReady(true);
       }
       syncState(msg);

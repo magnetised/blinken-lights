@@ -2,7 +2,7 @@ defmodule BlinkenLights do
   alias BlinkenLights.DisplayConfig
 
   def config do
-    BlinkenLights.Capture.get_config()
+    DisplayConfig.get_active()
   end
 
   def config([]) do
@@ -14,7 +14,8 @@ defmodule BlinkenLights do
   end
 
   def config(attrs) when is_list(attrs) do
-    with {:ok, config} <- BlinkenLights.Capture.set_config(attrs) do
+    with {:ok, config} <- BlinkenLights.Capture.set_config(attrs),
+         :ok = DisplayConfig.set_active(config) do
       # dbg(config)
       apply_actions(attrs, config)
     end

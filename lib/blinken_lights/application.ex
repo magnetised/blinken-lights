@@ -11,7 +11,8 @@ defmodule BlinkenLights.Application do
       {Registry, name: BlinkenLights.PubSub, keys: :duplicate},
       {DynamicSupervisor, name: BlinkenLights.DynamicSupervisor, strategy: :one_for_one},
       {Bandit, plug: BlinkenLights.Router},
-      {BlinkenLights.Capture, %BlinkenLights.DisplayConfig{}},
+      {BlinkenLights.DisplayConfig, %BlinkenLights.DisplayConfig{}},
+      BlinkenLights.Capture,
       {BlinkenLights.DarkMode,
        start_time: ~T[21:00:00], end_time: ~T[08:00:00], dark_target: [brightness: 0.05]}
     ]

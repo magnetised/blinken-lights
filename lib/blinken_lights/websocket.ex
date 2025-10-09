@@ -6,8 +6,8 @@ defmodule BlinkenLights.Websocket do
 
   def init(_) do
     IO.puts("New connection PID: #{inspect(self())}")
-    {:ok, _} = Registry.register(BlinkenLights.PubSub, :config, [])
-    {:ok, config} = BlinkenLights.config()
+    Process.send_after(self(), :register, 200)
+    {:ok, config} = DisplayConfig.get_active()
     {:ok, data} = DisplayConfig.for_websocket(config)
     {:ok, msg} = Jason.encode(%{control: "initial-state", msg: data})
     {:push, [{:text, msg}], []}
@@ -24,6 +24,11 @@ defmodule BlinkenLights.Websocket do
 
   def handle_in({client_message, opcode}, state) do
     dbg(in: [client_message, opcode])
+    {:ok, state}
+  end
+
+  def handle_info(:register, state) do
+    {:ok, _} = Registry.register(BlinkenLights.PubSub, :config, [])
     {:ok, state}
   end
 

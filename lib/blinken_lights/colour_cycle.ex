@@ -67,7 +67,7 @@ defmodule BlinkenLights.ColourCycle do
 
     BlinkenLights.config(white: white, black: black)
 
-    _ref = Process.send_after(self(), :cycle, max(100, round((1 - speed) * 1000)))
+    _ref = Process.send_after(self(), :cycle, max(10, round((1 - speed) * 1000)))
 
     state
   end
