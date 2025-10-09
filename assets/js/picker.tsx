@@ -72,7 +72,7 @@ export const ColorWheel = ({
   // const [size, setWidth] = React.useState(300);
   const wheelThickness = 30;
   const mainRadius = size / 2 - wheelThickness / 4;
-  const centre = mainRadius + wheelThickness / 8;
+  const centre = mainRadius + wheelThickness / 8 + 4;
   const drawHueSlider = (ctx, shape) => {
     var x = centre;
     var y = centre;
@@ -121,44 +121,30 @@ export const ColorWheel = ({
           <Selector
             onChange={onWhiteChange}
             value={whiteValue}
-            width={size}
-            height={size}
             borderColor="#ffffff"
-            centre={mainRadius + wheelThickness / 4}
+            centre={centre}
             radius={mainRadius - wheelThickness / 2}
           />
           <Selector
             onChange={onBlackChange}
             value={blackValue}
-            width={size}
-            height={size}
             borderColor="#000000"
-            centre={mainRadius + wheelThickness / 4}
-            radius={mainRadius - wheelThickness / 2}
+            centre={centre}
+            radius={mainRadius - wheelThickness / 2 + 1}
           />
-        </Layer>
-        <Layer rotation={0} offset={{ x: mainRadius, y: mainRadius }}>
-          <Arc
-            rotation={90}
-            innerRadius={0}
-            outerRadius={arcRadius}
-            x={mainRadius * 2 + wheelThickness / 4 - 8}
-            y={mainRadius * 2 + wheelThickness / 4}
+          <Circle
+            radius={mainRadius / 4 + 10}
+            x={centre - mainRadius / 4 - 6}
+            y={centre}
             fill={whiteColor}
-            angle={180}
             stroke={"#fff"}
-            strokeWidth={5}
+            strokeWidth={3}
           />
-          <Arc
-            rotation={-90}
-            innerRadius={0}
-            outerRadius={arcRadius}
-            x={mainRadius * 2 + wheelThickness / 4 + 8}
-            y={mainRadius * 2 + wheelThickness / 4}
+          <Circle
+            radius={mainRadius / 4 - 2}
+            x={centre + mainRadius / 4 + 2 + 6 + 10 + 2}
+            y={centre}
             fill={blackColor}
-            angle={180}
-            stroke={"#000"}
-            strokeWidth={5}
           />
         </Layer>
       </Stage>
