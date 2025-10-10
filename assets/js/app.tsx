@@ -67,6 +67,11 @@ const WebSocketProvider = ({ children }) => {
 
       if (control === "initial-state") {
         setReady(true);
+        sendJsonMessage({
+          type: "status_update",
+          value: "ready",
+          timestamp: Date.now(),
+        });
       }
       syncState(msg);
     }
