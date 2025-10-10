@@ -40,6 +40,7 @@ const WebSocketProvider = ({ children }) => {
   const [colorCycleSpeed, setColorCycleSpeed] = useState(false);
   const [scale, setScale] = useState(false);
   const [decay, setDecay] = useState(0);
+  const [darkMode, setDarkMode] = useState(false);
 
   const setters = {
     white: setWhiteHue,
@@ -47,6 +48,7 @@ const WebSocketProvider = ({ children }) => {
     saturation: setSaturation,
     brightness: setBrightness,
     fade: setFade,
+    dark_mode: setDarkMode,
     colour_cycle: setColorCycle,
     colour_cycle_speed: setColorCycleSpeed,
     scale: setScale,
@@ -111,6 +113,8 @@ const WebSocketProvider = ({ children }) => {
         setScale,
         decay,
         setDecay,
+        darkMode,
+        setDarkMode,
       }}
     >
       {ready ? children : "Loading"}
@@ -126,14 +130,56 @@ const joinWebSocket = () => {
   return context;
 };
 
-const ConnectionStatus = () => {
-  const { isConnected } = joinWebSocket();
+const ConnectionStatus = ({ children }) => {
+  const { isConnected, darkMode } = joinWebSocket();
 
+  const onClass = (onState, extra = "") => {
+    return `stroke-none ${onState ? "opacity-90" : "opacity-10"} ${extra}`;
+  };
+  const iconColour = "oklch(0.4859 0.0941 264.665)";
   return (
-    <div className="fixed top-0 left-0">
-      <div
-        className={`w-3 h-3 rounded-full ${isConnected() ? "bg-green-500" : "bg-red-500"}`}
-      ></div>
+    <div>
+      <div className="fixed top-[0px] left-[0px] flex flex-row">
+        <svg
+          style={{ fill: iconColour }}
+          className={onClass(isConnected(), "")}
+          width="30px"
+          height="30px"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M18.4961 10.7088L9.8603 19.5885C9.6207 19.8349 9.22228 19.5503 9.37764 19.2437L12.4518 13.1779C12.553 12.9783 12.408 12.7423 12.1842 12.7423H5.71762C5.45129 12.7423 5.31702 12.4211 5.5041 12.2315L13.5132 4.11699C13.7455 3.88157 14.132 4.14034 14.0029 4.44487L11.706 9.86069C11.6215 10.06 11.7694 10.2805 11.9859 10.2778L18.2773 10.1997C18.5444 10.1964 18.6823 10.5174 18.4961 10.7088Z" />
+        </svg>
+        {darkMode ? (
+          <svg
+            style={{ fill: iconColour }}
+            className={onClass(darkMode, "relative top-[4px]")}
+            width="20px"
+            height="20px"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 11.5373 21.3065 11.4608 21.0672 11.8568C19.9289 13.7406 17.8615 15 15.5 15C11.9101 15 9 12.0899 9 8.5C9 6.13845 10.2594 4.07105 12.1432 2.93276C12.5392 2.69347 12.4627 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
+          </svg>
+        ) : (
+          ""
+        )}
+      </div>
+      <div className="fixed top-[4px] right-[4px]"></div>
+      <div className={`relative ${isConnected() ? "" : "opacity-10"}`}>
+        {children}
+        {!isConnected() ? (
+          <div
+            className="absolute bottom-0 left-0 right-0 top-0"
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+            }}
+          ></div>
+        ) : (
+          ""
+        )}
+      </div>
     </div>
   );
 };
@@ -302,7 +348,7 @@ const ColorControls = () => {
     );
   };
   const sliderHeight = 200;
-  const horizSliderWidth = BROWSER_WIDTH - 36;
+  const horizSliderWidth = BROWSER_WIDTH - 32;
   const saturationDiv = React.useRef(null);
   const [saturationHeight, setSaturationHeight] = useState(0);
   const [globalTouch, setGlobalTouch] = useState(false);
@@ -323,7 +369,7 @@ const ColorControls = () => {
       onTouchStart={() => setGlobalTouch(true)}
       onTouchEnd={() => setGlobalTouch(false)}
     >
-      <div className="" ref={saturationDiv}>
+      <div className="flex flex-col gap-8" ref={saturationDiv}>
         <div className="flex flex-row gap-3">
           <div className="flex flex-col grow">
             <div className="flex flex-col justify-center">
@@ -406,12 +452,17 @@ const ColorControls = () => {
 const App = () => {
   return (
     <WebSocketProvider>
-      <ConnectionStatus />
-      <div className="min-h-screen p-3">
-        <div className="">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ColorControls />
-          </div>
+      <div className="flex justify-center">
+        <div className="max-w-[390px] flex flex-col">
+          <ConnectionStatus>
+            <div className="min-h-screen p-3">
+              <div className="">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <ColorControls />
+                </div>
+              </div>
+            </div>
+          </ConnectionStatus>
         </div>
       </div>
     </WebSocketProvider>
