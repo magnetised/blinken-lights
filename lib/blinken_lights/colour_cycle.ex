@@ -67,6 +67,8 @@ defmodule BlinkenLights.ColourCycle do
 
     BlinkenLights.config(white: white, black: black)
 
+    ## if you change this interval calculation, change the duration calculation
+    # in app.tsx
     _ref = Process.send_after(self(), :cycle, max(10, round((1 - speed) * 1000)))
 
     state

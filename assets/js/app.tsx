@@ -304,6 +304,15 @@ const ColorControls = () => {
   React.useEffect(() => {
     setSaturationHeight(saturationDiv.current.clientWidth / 2);
   }, []);
+  const cycleDuration = () => {
+    if (!colorCycle) {
+      return "OFF";
+    }
+    // max(10, round((1 - speed) * 1000))
+    const interval = Math.max(10, (1 - colorCycleSpeed) * 1000);
+    const duration = 360 * (interval / 1000);
+    return `${duration.toFixed(1)}s`;
+  };
   return (
     <div
       onTouchStart={() => setGlobalTouch(true)}
@@ -339,7 +348,7 @@ const ColorControls = () => {
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-col">
-            <Label name="Colour Cycle" value={colorCycle ? `ON` : "OFF"} />
+            <Label name="Colour Cycle" value={cycleDuration()} />
             <ScaleSlider
               width={horizSliderWidth}
               value={colorCycleSpeed}
