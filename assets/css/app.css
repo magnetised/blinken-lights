@@ -8,16 +8,25 @@ html {
 body,
 html {
   height: 100%; /* Fill the window */
+  user-select: none;
+  font-family: "Hepta Slab", serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 0.9rem;
 }
 
 html,
-body {
-  user-select: none;
+body,
+.background {
+  background-color: #181b1f;
 }
 
-/* #connection.online { */
-/*   background: url(./two-small-connected-chains-svgrepo-com.svg) no-repeat; */
-/*   width: 10px; */
-/*   height: 10px; */
-/*     color */
-/* } */
+.text-label {
+  color: #7b888a;
+}
+.text-subdued {
+  /* color: oklch(0.4859 0.0941 264.665); */
+  /* color: #393e43; */
+  color: #565c61;
+}

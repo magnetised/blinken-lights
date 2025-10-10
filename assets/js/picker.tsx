@@ -9,6 +9,7 @@ import {
   Group,
   Ring,
 } from "react-konva";
+import { BROWSER_WIDTH, WHEEL_SIZE, THUMB_SIZE } from "./constants.ts";
 
 const selectorRadius = 20;
 const Selector = ({ value, onChange, centre, radius, borderColor }) => {
@@ -99,7 +100,8 @@ export const ColorWheel = ({
     ctx.beginPath();
     ctx.arc(x, y, mainRadius - wheelThickness, 0, 360);
     ctx.closePath();
-    ctx.fillStyle = "oklch(0.21 0.034 264.665)";
+    // ctx.fillStyle = "oklch(0.21 0.034 264.665)";
+    ctx.fillStyle = "#181b1f";
     ctx.fill();
     ctx.fillStrokeShape(shape);
   };
@@ -153,8 +155,8 @@ export const ColorWheel = ({
 };
 
 export const Slider = ({ height, value, onChange, globalTouch }) => {
-  const innerR = 18;
-  const outerR = innerR + 18;
+  const outerR = THUMB_SIZE;
+  const innerR = outerR / 2;
   const totalWidth = outerR * 2 + 4;
   const finalHeight = height - 2 * outerR - 2;
   const barWidth = 2;
@@ -266,8 +268,8 @@ export const HorizontalSlider = ({
   valueMap = (v) => v,
   inverseValueMap = (v) => v,
 }) => {
-  const innerR = 18;
-  const outerR = innerR + 18;
+  const outerR = THUMB_SIZE;
+  const innerR = outerR / 2;
   const totalHeight = outerR * 2 + 4;
   const finalWidth = width - 2 * outerR - 2;
   const barHeight = 2;
@@ -382,8 +384,8 @@ export const ScaleSlider = ({
   globalTouch,
   valueMap = (v) => v,
 }) => {
-  const innerR = 18;
-  const outerR = innerR + 18;
+  const outerR = THUMB_SIZE;
+  const innerR = outerR / 2;
   const totalHeight = outerR * 2 + 4;
   const finalWidth = width - 2 * outerR - 2;
   const barHeight = 2;

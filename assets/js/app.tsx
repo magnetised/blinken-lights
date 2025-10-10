@@ -7,6 +7,7 @@ import React, {
   // useCallback,
 } from "react";
 import ReactDOM from "react-dom/client";
+import { BROWSER_WIDTH, WHEEL_SIZE, THUMB_SIZE } from "./constants.ts";
 
 import {
   ColorWheel,
@@ -18,9 +19,49 @@ import {
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
 const WebSocketContext = createContext();
-const BROWSER_WIDTH = 390;
-const WHEEL_SIZE = BROWSER_WIDTH - 120;
 
+const ConnectionIcon = ({ text }) => {
+  const { isConnected, darkMode } = joinWebSocket();
+  const onClass = (onState, extra = "") => {
+    return `stroke-none ${onState ? "opacity-90" : "opacity-10"} ${extra}`;
+  };
+  const iconColour = "oklch(0.4859 0.0941 264.665)";
+  return (
+    <div className="fixed top-[0px] left-[0px] flex flex-row z-1000">
+      {isConnected() ? (
+        ""
+      ) : (
+        <svg
+          style={{ fill: iconColour }}
+          className={onClass(
+            isConnected(),
+            `${!isConnected() ? "animate-pulse" : ""}`,
+          )}
+          width="30px"
+          height="30px"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M18.4961 10.7088L9.8603 19.5885C9.6207 19.8349 9.22228 19.5503 9.37764 19.2437L12.4518 13.1779C12.553 12.9783 12.408 12.7423 12.1842 12.7423H5.71762C5.45129 12.7423 5.31702 12.4211 5.5041 12.2315L13.5132 4.11699C13.7455 3.88157 14.132 4.14034 14.0029 4.44487L11.706 9.86069C11.6215 10.06 11.7694 10.2805 11.9859 10.2778L18.2773 10.1997C18.5444 10.1964 18.6823 10.5174 18.4961 10.7088Z" />
+        </svg>
+      )}
+      {isConnected() && darkMode ? (
+        <svg
+          style={{ fill: iconColour }}
+          className={onClass(darkMode, "relative top-[4px]")}
+          width="20px"
+          height="20px"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 11.5373 21.3065 11.4608 21.0672 11.8568C19.9289 13.7406 17.8615 15 15.5 15C11.9101 15 9 12.0899 9 8.5C9 6.13845 10.2594 4.07105 12.1432 2.93276C12.5392 2.69347 12.4627 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
+        </svg>
+      ) : (
+        ""
+      )}
+    </div>
+  );
+};
 const WebSocketProvider = ({ children }) => {
   const [socketUrl, setSocketUrl] = useState(
     `ws://${window.location.host}/websocket`,
@@ -117,7 +158,7 @@ const WebSocketProvider = ({ children }) => {
         setDarkMode,
       }}
     >
-      {ready ? children : "Loading"}
+      {ready ? children : <ConnectionIcon text="Loading..." />}
     </WebSocketContext.Provider>
   );
 };
@@ -133,39 +174,9 @@ const joinWebSocket = () => {
 const ConnectionStatus = ({ children }) => {
   const { isConnected, darkMode } = joinWebSocket();
 
-  const onClass = (onState, extra = "") => {
-    return `stroke-none ${onState ? "opacity-90" : "opacity-10"} ${extra}`;
-  };
-  const iconColour = "oklch(0.4859 0.0941 264.665)";
   return (
     <div>
-      <div className="fixed top-[0px] left-[0px] flex flex-row">
-        <svg
-          style={{ fill: iconColour }}
-          className={onClass(isConnected(), "")}
-          width="30px"
-          height="30px"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M18.4961 10.7088L9.8603 19.5885C9.6207 19.8349 9.22228 19.5503 9.37764 19.2437L12.4518 13.1779C12.553 12.9783 12.408 12.7423 12.1842 12.7423H5.71762C5.45129 12.7423 5.31702 12.4211 5.5041 12.2315L13.5132 4.11699C13.7455 3.88157 14.132 4.14034 14.0029 4.44487L11.706 9.86069C11.6215 10.06 11.7694 10.2805 11.9859 10.2778L18.2773 10.1997C18.5444 10.1964 18.6823 10.5174 18.4961 10.7088Z" />
-        </svg>
-        {darkMode ? (
-          <svg
-            style={{ fill: iconColour }}
-            className={onClass(darkMode, "relative top-[4px]")}
-            width="20px"
-            height="20px"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 11.5373 21.3065 11.4608 21.0672 11.8568C19.9289 13.7406 17.8615 15 15.5 15C11.9101 15 9 12.0899 9 8.5C9 6.13845 10.2594 4.07105 12.1432 2.93276C12.5392 2.69347 12.4627 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
-          </svg>
-        ) : (
-          ""
-        )}
-      </div>
-      <div className="fixed top-[4px] right-[4px]"></div>
+      <ConnectionIcon />
       <div className={`relative ${isConnected() ? "" : "opacity-10"}`}>
         {children}
         {!isConnected() ? (
@@ -179,110 +190,6 @@ const ConnectionStatus = ({ children }) => {
         ) : (
           ""
         )}
-      </div>
-    </div>
-  );
-};
-
-const SliderControl = ({
-  label,
-  value,
-  min,
-  max,
-  step,
-  onChange,
-  unit = "",
-  color = "blue",
-  disabled = false,
-}) => {
-  const { sendMessage, isConnected } = joinWebSocket();
-
-  const handleChange = (e) => {
-    const newValue = parseFloat(e.target.value);
-    onChange(newValue);
-
-    // Send WebSocket message
-    if (isConnected()) {
-      sendMessage({
-        type: "control_update",
-        control: label.toLowerCase().replace(" ", "_"),
-        value: newValue,
-        timestamp: Date.now(),
-      });
-    }
-  };
-
-  const percentage = ((value - min) / (max - min)) * 100;
-
-  return (
-    <div className="mb-12">
-      <div className="flex justify-between items-center mb-2">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-        <span
-          className="text-sm font-mono bg-gray-100 px-2 py-1 rounded"
-          style={{ color: "black" }}
-        >
-          {value.toFixed(step < 1 ? 2 : 0)}
-          {unit}
-        </span>
-      </div>
-      <div className="relative">
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={handleChange}
-          disabled={!isConnected() || disabled}
-          // className={`w-full h-2 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-gray-300 to-${color}-500`}
-          className="w-full range range-neutral range-lg [--range-fill:0]"
-          style={{
-            background:
-              label === "White Hue" || label === "Black Hue"
-                ? "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"
-                : label === "Saturation"
-                  ? `linear-gradient(to right, #808080, hsl(${Math.round(value * 360)}, 100%, 50%))`
-                  : label === "Brightness"
-                    ? `linear-gradient(to right, #000000, hsl(${Math.round(value * 360)}, 100%, 50%))`
-                    : `linear-gradient(to right, #e5e5e5, #${color === "blue" ? "3b82f6" : color === "green" ? "10b981" : "f59e0b"})`,
-          }}
-        />
-      </div>
-    </div>
-  );
-};
-
-const ToggleControl = ({ label, value, onChange, color = "blue" }) => {
-  const { sendMessage, isConnected } = joinWebSocket();
-
-  const handleToggle = () => {
-    const newValue = !value;
-    onChange(newValue);
-
-    if (isConnected()) {
-      sendMessage({
-        type: "control_update",
-        control: label.toLowerCase().replace(" ", "_"),
-        value: newValue,
-        timestamp: Date.now(),
-      });
-    }
-  };
-
-  return (
-    <div className="_mb-12">
-      <div className="flex justify-between items-center">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-        <input
-          type="checkbox"
-          checked={value}
-          onChange={handleToggle}
-          disabled={!isConnected()}
-          className="toggle toggle-lg toggle-neutral"
-          style={{ color: "black" }}
-          // className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-${color}-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${ value ? `bg-${color}-600` : "bg-gray-200" }`}
-        />
       </div>
     </div>
   );
@@ -333,22 +240,22 @@ const ColorControls = () => {
   const whiteColor = () => `hsl(${whiteHue} ${saturation * 100}% ${l}%)`;
   const blackColor = () => `hsl(${blackHue} ${saturation * 100}% ${l}%)`;
 
-  const round = (v) => {
-    return Math.round((v + Number.EPSILON) * 1000) / 1000;
-  };
-
   const percent = (v) => {
     return `${(v * 100).toFixed(1)}%`;
   };
+
   const Label = ({ name, value }) => {
     return (
-      <div className="text-white">
-        {name} {typeof value === "string" ? value : percent(value)}
+      <div>
+        <span className="text-label">{name}</span>{" "}
+        <span className="text-subdued">
+          {typeof value === "string" ? value : percent(value)}
+        </span>
       </div>
     );
   };
   const sliderHeight = 200;
-  const horizSliderWidth = BROWSER_WIDTH - 32;
+  const horizSliderWidth = BROWSER_WIDTH - THUMB_SIZE;
   const saturationDiv = React.useRef(null);
   const [saturationHeight, setSaturationHeight] = useState(0);
   const [globalTouch, setGlobalTouch] = useState(false);
@@ -359,7 +266,6 @@ const ColorControls = () => {
     if (!colorCycle) {
       return "OFF";
     }
-    // max(10, round((1 - speed) * 1000))
     const interval = Math.max(10, (1 - colorCycleSpeed) * 1000);
     const duration = 360 * (interval / 1000);
     return `${duration.toFixed(1)}s`;

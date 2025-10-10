@@ -19,10 +19,13 @@ defmodule BlinkenLights.Router do
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Hepta+Slab:wght@600&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="/static/app.css" />
         <title>Lights</title>
       </head>
-      <body class="bg-gray-900">
+      <body class="--bg-gray-900">
         <div id="root"></div>
       <script>
       document.body.addEventListener('touchmove', function(e) {
