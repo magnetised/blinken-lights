@@ -35,12 +35,13 @@ defmodule BlinkenLights.MixProject do
 
   defp aliases do
     shared = [
-      # "esbuild default",
-      # "tailwind default",
+      "esbuild default",
+      "tailwind default",
       "run --no-halt"
     ]
 
     [
+      dev: ["cmd cargo build --release", "run --no-halt"],
       terminal: ["cmd cargo build --release" | shared],
       lights: ["cmd cargo build --release --features leds" | shared]
     ]
