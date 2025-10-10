@@ -427,6 +427,8 @@ const ColorControls = () => {
               globalTouch={globalTouch}
               width={horizSliderWidth}
               value={fade}
+              valueMap={(value) => Math.pow(value, 1 / 3.2)}
+              inverseValueMap={(value) => Math.pow(value, 3.2)}
               onChange={handleChange("fade", setFade)}
             />
           </div>

@@ -258,7 +258,14 @@ export const Slider = ({ height, value, onChange, globalTouch }) => {
   );
 };
 
-export const HorizontalSlider = ({ width, value, onChange, globalTouch }) => {
+export const HorizontalSlider = ({
+  width,
+  value,
+  onChange,
+  globalTouch,
+  valueMap = (v) => v,
+  inverseValueMap = (v) => v,
+}) => {
   const innerR = 18;
   const outerR = innerR + 18;
   const totalHeight = outerR * 2 + 4;
@@ -270,7 +277,7 @@ export const HorizontalSlider = ({ width, value, onChange, globalTouch }) => {
 
   const onDrag = (e) => {
     const value = (e.target.attrs.x - left + outerR) / finalWidth;
-    onChange(value);
+    onChange(valueMap(value));
   };
   const dragBound = (pos) => {
     let x;
@@ -286,6 +293,7 @@ export const HorizontalSlider = ({ width, value, onChange, globalTouch }) => {
       x: x,
     };
   };
+  const scaledValue = inverseValueMap(value);
   return (
     <Stage
       width={width}
@@ -306,7 +314,7 @@ export const HorizontalSlider = ({ width, value, onChange, globalTouch }) => {
         <Rect
           x={left}
           y={middleY - barHeight / 2}
-          width={finalWidth * value}
+          width={finalWidth * scaledValue}
           height={barHeight}
           cornerRadius={barHeight / 2}
           fill={"#fff"}
@@ -322,7 +330,7 @@ export const HorizontalSlider = ({ width, value, onChange, globalTouch }) => {
           transformsEnabled={"position"}
           width={totalHeight}
           height={totalHeight}
-          x={left - outerR + finalWidth * value}
+          x={left - outerR + finalWidth * scaledValue}
           y={middleY - outerR}
         >
           <Circle
@@ -372,6 +380,7 @@ export const ScaleSlider = ({
   toggle,
   onToggle,
   globalTouch,
+  valueMap = (v) => v,
 }) => {
   const innerR = 18;
   const outerR = innerR + 18;
@@ -397,7 +406,7 @@ export const ScaleSlider = ({
         (x - offPos + outerR) / (finalWidth - offPos + outerR),
       );
       const value = rawValue * maxValue + minValue;
-      onChange(value);
+      onChange(valueMap(value));
     } else {
       onToggle(false);
     }
