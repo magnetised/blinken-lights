@@ -52,7 +52,8 @@ defmodule BlinkenLights.Websocket do
 
   def handle_info(:disconnect, state) do
     dbg(:disconnect)
-    {:stop, :normal, state}
+    # {:stop, :normal, state}
+    {:ok, state}
   end
 
   defp handle_msg(%{"type" => "status_update", "value" => "ready"}, state) do

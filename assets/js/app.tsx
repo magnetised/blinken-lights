@@ -334,7 +334,7 @@ const ColorControls = () => {
             />
           </div>
           <div className="flex flex-col">
-            <Label name="Fade" value={fade} />
+            <Label name="Sustain" value={fade} />
             <HorizontalSlider
               globalTouch={globalTouch}
               width={horizSliderWidth}
