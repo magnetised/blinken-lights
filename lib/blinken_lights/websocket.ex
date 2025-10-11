@@ -13,7 +13,6 @@ defmodule BlinkenLights.Websocket do
   end
 
   def handle_in({"ping", [opcode: :text]}, state) do
-    dbg(:oing)
     {:ok, schedule_disconnect(state)}
   end
 
