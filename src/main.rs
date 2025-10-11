@@ -20,6 +20,7 @@ use ringbuf::traits::*;
 
 mod display;
 mod leds;
+mod null;
 mod piano;
 mod terminal;
 
@@ -233,7 +234,12 @@ fn display_impl() -> impl display::Display {
     leds::LEDs::new()
 }
 
-#[cfg(not(feature = "leds"))]
+#[cfg(feature = "terminal")]
 fn display_impl() -> impl display::Display {
     terminal::Terminal::new()
+}
+
+#[cfg(feature = "no-display")]
+fn display_impl() -> impl display::Display {
+    null::Null::new()
 }

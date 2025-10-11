@@ -7,10 +7,6 @@ defmodule BlinkenLights.Capture do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  # def get_config do
-  #   GenServer.call(__MODULE__, :get_config)
-  # end
-
   def set_config(config) do
     GenServer.call(__MODULE__, {:set_config, config})
   end
@@ -33,14 +29,18 @@ defmodule BlinkenLights.Capture do
     {:noreply, {port, config}}
   end
 
-  # def handle_call(:get_config, _from, {port, config}) do
-  #   {:reply, {:ok, config}, {port, config}}
-  # end
-
   def handle_call({:set_config, attrs}, _from, {port, config}) do
-    config = Enum.reduce(attrs, config, fn {k, v}, config -> Map.put(config, k, v) end)
+    config = Enum.reduce(attrs, config, &set_attr/2) |> dbg
     send_config({port, config})
     {:reply, {:ok, config}, {port, config}}
+  end
+
+  defp set_attr({k, v}, config) when is_list(v) or is_map(v) do
+    Map.update!(config, k, fn inner -> Enum.reduce(v, inner, &set_attr/2) end)
+  end
+
+  defp set_attr({k, v}, config) do
+    Map.put(config, k, v)
   end
 
   defp start_port(config) do

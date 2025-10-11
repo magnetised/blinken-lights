@@ -18,7 +18,7 @@ defmodule BlinkenLights.Websocket do
 
   def handle_in({client_message, [opcode: :text]}, state) do
     state =
-      case Jason.decode(client_message) do
+      case Jason.decode(client_message, keys: :atoms) do
         {:ok, msg} ->
           handle_msg(msg, state)
 
@@ -36,6 +36,7 @@ defmodule BlinkenLights.Websocket do
   end
 
   def handle_info({:config_change, config}, state) do
+    dbg(change: config)
     {:ok, msg} = Jason.encode(%{control: "config-change", msg: Map.new(config)})
     {:push, [{:text, msg}], schedule_disconnect(state)}
   end
@@ -51,18 +52,20 @@ defmodule BlinkenLights.Websocket do
   end
 
   def handle_info(:disconnect, state) do
-    dbg(:disconnect)
+    # dbg(:disconnect)
     # {:stop, :normal, state}
     {:ok, state}
   end
 
-  defp handle_msg(%{"type" => "status_update", "value" => "ready"}, state) do
+  defp handle_msg(%{type: "status_update", value: "ready"}, state) do
     IO.puts("Connection ready: #{inspect(self())}")
     {:ok, _} = Registry.register(BlinkenLights.PubSub, :config, [])
     state
   end
 
-  defp handle_msg(%{"type" => "control_update", "control" => control, "value" => value}, state) do
+  defp handle_msg(%{type: "control_update", control: control, value: value}, state) do
+    dbg({control, value})
+
     case control do
       "color_cycle" ->
         [colour_cycle: value]
@@ -70,10 +73,10 @@ defmodule BlinkenLights.Websocket do
       "color_cycle_speed" ->
         [colour_cycle_speed: value]
 
-      "white_hue" ->
+      "white" ->
         [white: value]
 
-      "black_hue" ->
+      "black" ->
         [black: value]
 
       "fade" ->

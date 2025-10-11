@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  SyntheticEvent,
   useContext,
   useEffect,
   useState,
@@ -7,6 +8,7 @@ import React, {
   // useCallback,
 } from "react";
 import ReactDOM from "react-dom/client";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 import { BROWSER_WIDTH, WHEEL_SIZE, THUMB_SIZE } from "./constants.ts";
 
 import {
@@ -16,13 +18,34 @@ import {
   Slider,
 } from "./picker.jsx";
 
-import useWebSocket, { ReadyState } from "react-use-websocket";
+type DisplayContext = {
+  readyState;
+  sendMessage: sendJsonMessage;
+  isConnected;
+  white;
+  setWhite;
+  black;
+  setBlack;
+  brightness;
+  setBrightness;
+  fade;
+  setFade;
+  colorCycle;
+  setColorCycle;
+  colorCycleSpeed;
+  setColorCycleSpeed;
+  scale;
+  setScale;
+  decay;
+  setDecay;
+  darkMode;
+  setDarkMode;
+};
+const WebSocketContext = createContext<DisplayContext | null>(null);
 
-const WebSocketContext = createContext();
-
-const ConnectionIcon = ({ text }) => {
+const ConnectionIcon = (_props: { text?: string }) => {
   const { isConnected, darkMode } = joinWebSocket();
-  const onClass = (onState, extra = "") => {
+  const onClass = (onState: boolean, extra = "") => {
     return `stroke-none ${onState ? "opacity-90" : "opacity-10"} ${extra}`;
   };
   const iconColour = "oklch(0.4859 0.0941 264.665)";
@@ -63,24 +86,39 @@ const ConnectionIcon = ({ text }) => {
   );
 };
 
+type DisplayColour = {
+  hue: number;
+  saturation: number;
+};
+type DisplayConfig = {
+  white: DisplayColour;
+  black: DisplayColour;
+  saturation: number;
+  brightness: number;
+  fade: number;
+  colour_cycle: boolean;
+  colour_cycle_speed: number;
+  scale: boolean;
+  decay: number;
+};
+
 const WebSocketProvider = ({ children }) => {
-  const [socketUrl, setSocketUrl] = useState(
+  const { sendJsonMessage, lastMessage, readyState } = useWebSocket(
     `ws://${window.location.host}/websocket`,
-  );
-  const { sendJsonMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
-    shouldReconnect: (closeEvent) => {
-      console.log(closeEvent);
-      return true;
+    {
+      shouldReconnect: (closeEvent: CloseEvent) => {
+        console.log(closeEvent);
+        return true;
+      },
+      // heartbeat: { message: JSON.stringify({ type: "ping", interval: 2000 }) },
+      heartbeat: { message: "ping", interval: 2000 },
     },
-    // heartbeat: { message: JSON.stringify({ type: "ping", interval: 2000 }) },
-    heartbeat: { message: "ping", interval: 2000 },
-  });
+  );
 
   const [ready, setReady] = useState(false);
 
-  const [whiteHue, setWhiteHue] = useState(0);
-  const [blackHue, setBlackHue] = useState(0);
-  const [saturation, setSaturation] = useState(0);
+  const [white, setWhite] = useState({ hue: 0, saturation: 1 });
+  const [black, setBlack] = useState({ hue: 0, saturation: 1 });
   const [brightness, setBrightness] = useState(0);
   const [fade, setFade] = useState(0);
   const [colorCycle, setColorCycle] = useState(false);
@@ -89,10 +127,13 @@ const WebSocketProvider = ({ children }) => {
   const [decay, setDecay] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
 
+  // type ConfigSettersMap = Record<
+  //   keyof typeof ConfigSetterKey,
+  //   (val: DisplayConfigValue) => DisplayConfigValue
+  // >;
   const setters = {
-    white: setWhiteHue,
-    black: setBlackHue,
-    saturation: setSaturation,
+    white: setWhite,
+    black: setBlack,
     brightness: setBrightness,
     fade: setFade,
     dark_mode: setDarkMode,
@@ -102,7 +143,7 @@ const WebSocketProvider = ({ children }) => {
     decay: setDecay,
   };
 
-  const syncState = (state) => {
+  const syncState = (state: DisplayConfig) => {
     for (const [key, value] of Object.entries(state)) {
       if (setters.hasOwnProperty(key)) {
         setters[key](value);
@@ -142,12 +183,10 @@ const WebSocketProvider = ({ children }) => {
         readyState,
         sendMessage: sendJsonMessage,
         isConnected,
-        whiteHue,
-        setWhiteHue,
-        blackHue,
-        setBlackHue,
-        saturation,
-        setSaturation,
+        white,
+        setWhite,
+        black,
+        setBlack,
         brightness,
         setBrightness,
         fade,
@@ -204,12 +243,10 @@ const ConnectionStatus = ({ children }) => {
 // Color Controls Component
 const ColorControls = () => {
   const {
-    whiteHue,
-    setWhiteHue,
-    blackHue,
-    setBlackHue,
-    saturation,
-    setSaturation,
+    white,
+    setWhite,
+    black,
+    setBlack,
     brightness,
     setBrightness,
     fade,
@@ -226,31 +263,37 @@ const ColorControls = () => {
     isConnected,
   } = joinWebSocket();
 
-  const handleChange = (name, setter) => {
-    return (newValue) => {
-      setter(newValue);
+  const handleChange = (
+    name: string,
+    setter: (v) => any,
+    mapper = (v) => v,
+  ) => {
+    return (newValue: DisplayColour | boolean | number) => {
+      const value = mapper(newValue);
+      setter(value);
 
       // Send WebSocket message
       if (isConnected()) {
+        console.log("sendmessage", newValue);
         sendMessage({
           type: "control_update",
           control: name,
-          value: newValue,
+          value: value,
           timestamp: Date.now(),
         });
       }
     };
   };
-  const l = 50 + (1 - saturation) * 50;
   // Calculate current color
-  const whiteColor = () => `hsl(${whiteHue} ${saturation * 100}% ${l}%)`;
-  const blackColor = () => `hsl(${blackHue} ${saturation * 100}% ${l}%)`;
+  const hslColor = (c: DisplayColour) => {
+    return `hsl(${c.hue} ${c.saturation * 100}% ${50 + (1 - c.saturation) * 50}%)`;
+  };
 
-  const percent = (v) => {
+  const percent = (v: number) => {
     return `${(v * 100).toFixed(1)}%`;
   };
 
-  const Label = ({ name, value }) => {
+  const Label = ({ name, value }: { name: string; value: number | string }) => {
     return (
       <div>
         <span className="text-label">{name}</span>{" "}
@@ -260,14 +303,8 @@ const ColorControls = () => {
       </div>
     );
   };
-  const sliderHeight = 200;
   const horizSliderWidth = BROWSER_WIDTH - THUMB_SIZE;
-  const saturationDiv = React.useRef(null);
-  const [saturationHeight, setSaturationHeight] = useState(0);
   const [globalTouch, setGlobalTouch] = useState(false);
-  React.useEffect(() => {
-    setSaturationHeight(saturationDiv.current.clientWidth / 2);
-  }, []);
   const cycleDuration = () => {
     if (!colorCycle) {
       return "OFF";
@@ -276,24 +313,59 @@ const ColorControls = () => {
     const duration = 360 * (interval / 1000);
     return `${duration.toFixed(1)}s`;
   };
+  const controls = {
+    white: { name: "white", setter: setWhite, value: white },
+    black: { name: "black", setter: setBlack, value: black },
+  };
+  const [active, setActive] = useState(controls.white);
+
+  const Tab = ({ keyBg, color, onClick, isActive }) => {
+    const height = "h-lh";
+    return (
+      <div
+        className={`flex flex-row items-center grow gap-1 border-b-1 ${isActive ? "border-b-transparent" : "border-b-black opacity-50"}`}
+        onClick={onClick}
+        onTouchStart={onClick}
+      >
+        <div className={`w-[15px] h-[40px] ${keyBg}`}></div>
+        <div
+          style={{ backgroundColor: hslColor(color) }}
+          className={`flex grow h-[38px] rounded-sm`}
+        ></div>
+      </div>
+    );
+  };
   return (
     <div
       onTouchStart={() => setGlobalTouch(true)}
       onTouchEnd={() => setGlobalTouch(false)}
     >
-      <div className="flex flex-col gap-8" ref={saturationDiv}>
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-row gap-2">
+          <Tab
+            keyBg={"bg-white"}
+            color={white}
+            isActive={active.name === "white"}
+            onClick={(_e) => setActive(controls.white)}
+          />
+          <Tab
+            keyBg={"bg-black"}
+            color={black}
+            isActive={active.name === "black"}
+            onClick={(_e) => setActive(controls.black)}
+          />
+        </div>
         <div className="flex flex-row gap-3">
           <div className="flex flex-col grow">
             <div className="flex flex-col justify-center">
               <ColorWheel
                 size={WHEEL_SIZE}
-                whiteValue={whiteHue}
-                blackValue={blackHue}
-                onWhiteChange={handleChange("white_hue", setWhiteHue)}
-                onBlackChange={handleChange("black_hue", setBlackHue)}
+                value={active.value.hue}
+                onChange={handleChange(active.name, active.setter, (v) => ({
+                  ...active.value,
+                  hue: v,
+                }))}
                 disabled={colorCycle}
-                whiteColor={whiteColor()}
-                blackColor={blackColor()}
               />
             </div>
           </div>
@@ -302,8 +374,11 @@ const ColorControls = () => {
               <Slider
                 globalTouch={globalTouch}
                 height={WHEEL_SIZE}
-                value={saturation}
-                onChange={handleChange("saturation", setSaturation)}
+                value={active.value.saturation}
+                onChange={handleChange(active.name, active.setter, (v) => ({
+                  ...active.value,
+                  saturation: v,
+                }))}
               />
             </div>
           </div>

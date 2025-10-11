@@ -1,13 +1,19 @@
+defmodule BlinkenLights.DisplayConfig.Colour do
+  @derive Jason.Encoder
+  defstruct hue: 0.0, saturation: 1.0
+end
+
 defmodule BlinkenLights.DisplayConfig do
   use GenServer
 
+  alias BlinkenLights.DisplayConfig.Colour
+
   @derive Jason.Encoder
 
-  defstruct white: 1.0,
-            black: 350.0,
-            saturation: 0.55,
+  defstruct white: %Colour{hue: 1.0, saturation: 0.9},
+            black: %Colour{hue: 350.0, saturation: 0.9},
             fade: 0.89,
-            brightness: 0.5,
+            brightness: 0.8,
             sensitivity: 1.0,
             decay: 1.8,
             scale: false,
@@ -32,6 +38,7 @@ defmodule BlinkenLights.DisplayConfig do
   end
 
   def for_websocket(%__MODULE__{} = config) do
+    dbg(config)
     {:ok, config}
   end
 

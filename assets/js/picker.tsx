@@ -60,16 +60,7 @@ const Selector = ({ value, onChange, centre, radius, borderColor }) => {
     />
   );
 };
-export const ColorWheel = ({
-  size,
-  whiteValue,
-  blackValue,
-  onWhiteChange,
-  onBlackChange,
-  whiteColor,
-  blackColor,
-  disabled,
-}) => {
+export const ColorWheel = ({ size, value, onChange, disabled }) => {
   // const [size, setWidth] = React.useState(300);
   const wheelThickness = 30;
   const mainRadius = size / 2 - wheelThickness / 4;
@@ -121,33 +112,26 @@ export const ColorWheel = ({
         </Layer>
         <Layer>
           <Selector
-            onChange={onWhiteChange}
-            value={whiteValue}
+            onChange={onChange}
+            value={value}
             borderColor="#ffffff"
             centre={centre}
             radius={mainRadius - wheelThickness / 2}
           />
-          <Selector
-            onChange={onBlackChange}
-            value={blackValue}
-            borderColor="#000000"
-            centre={centre}
-            radius={mainRadius - wheelThickness / 2 + 1}
-          />
-          <Circle
-            radius={mainRadius / 4 + 10}
-            x={centre - mainRadius / 4 - 6}
-            y={centre}
-            fill={whiteColor}
-            stroke={"#fff"}
-            strokeWidth={3}
-          />
-          <Circle
-            radius={mainRadius / 4 - 2}
-            x={centre + mainRadius / 4 + 2 + 6 + 10 + 2}
-            y={centre}
-            fill={blackColor}
-          />
+          {/* <Circle */}
+          {/*   radius={mainRadius / 4 + 10} */}
+          {/*   x={centre - mainRadius / 4 - 6} */}
+          {/*   y={centre} */}
+          {/*   fill={whiteColor} */}
+          {/*   stroke={"#fff"} */}
+          {/*   strokeWidth={3} */}
+          {/* /> */}
+          {/* <Circle */}
+          {/*   radius={mainRadius / 4 - 2} */}
+          {/*   x={centre + mainRadius / 4 + 2 + 6 + 10 + 2} */}
+          {/*   y={centre} */}
+          {/*   fill={blackColor} */}
+          {/* /> */}
         </Layer>
       </Stage>
     </div>
