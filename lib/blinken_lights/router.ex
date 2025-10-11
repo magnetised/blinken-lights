@@ -27,136 +27,186 @@ defmodule BlinkenLights.Router do
       </head>
       <body class="--bg-gray-900">
         <div id="root"></div>
-      <script>
-      document.body.addEventListener('touchmove', function(e) {
-        e.preventDefault();
-      });
-      /*! iNoBounce - v0.2.0
-    * https://github.com/lazd/iNoBounce/
-    * Copyright (c) 2013 Larry Davis <lazdnet@gmail.com>; Licensed BSD */
-    (function(global) {
-    // Stores the Y position where the touch started
-    var startY = 0;
+        <script>
+          window.addEventListener('beforeinstallprompt', (e) => {
+          });
+          const manifest = {
+            name: 'BlinkenLights',
+            display: 'standalone',
+            theme_color: '#B3BBBF',
+            background_color: '#263238',
+            start_url: window.location.href,
+            // png icon will be converted from SVG
+          };
 
-    // Store enabled status
-    var enabled = false;
+          (async function() {
+            // const svgIconLink = document.querySelector('link[rel="icon"]');
 
-    var supportsPassiveOption = false;
-    try {
-    var opts = Object.defineProperty({}, 'passive', {
-    get: function() {
-    supportsPassiveOption = true;
-    }
-    });
-    window.addEventListener('test', null, opts);
-    } catch (e) {}
+            // // convert from SVG string to PNG data URL
+            // const pngDataUrl = await svgToPng(svgIconLink.href, iconSize);
 
-    var handleTouchmove = function(evt) {
-    // Get the element that was scrolled upon
-    var el = evt.target;
+            // // set the icon meta tags to the new PNG
+            // setIcon("link[rel='icon']", pngDataUrl, iconSize);
+            // setIcon("link[rel='apple-touch-icon']", pngDataUrl);
 
-    // Allow zooming
-    var zoom = window.innerWidth / window.document.documentElement.clientWidth;
-    if (evt.touches.length > 1 || zoom !== 1) {
-    return;
-    }
+            // // dynamically create manifest
+            // manifest.icons =  [{
+            //   src: pngDataUrl,
+            //   sizes: `${iconSize}x${iconSize}`,
+            //   type: 'image/png'
+            // }]
 
-    // Check all parent elements for scrollability
-    while (el !== document.body && el !== document) {
-    // Get some style properties
-    var style = window.getComputedStyle(el);
+            // set the manifest meta tag data url
+            setManifest(manifest);
 
-    if (!style) {
-    // If we've encountered an element we can't compute the style for, get out
-    break;
-    }
+            // generate and set the iOS startup image
+            // const startupImageDataUrl = await createStartupImage(
+            //   svgIconLink.href,
+            //   manifest.background_color
+            // );
+            // const startupLink = document.createElement('link');
+            // startupLink.rel = 'apple-touch-startup-image';
+            // startupLink.href = startupImageDataUrl;
+            // document.head.appendChild(startupLink);
+          })();
+          function setManifest(manifest) {
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            const b64manifest = btoa(JSON.stringify(manifest));
+            link.href = "data:application/json;base64," + b64manifest;
+            document.head.appendChild(link);
+          }
+        </script>
+        <script>
+          document.body.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+          });
+          /*! iNoBounce - v0.2.0
+            * https://github.com/lazd/iNoBounce/
+            * Copyright (c) 2013 Larry Davis <lazdnet@gmail.com>; Licensed BSD */
+          (function(global) {
+            // Stores the Y position where the touch started
+            var startY = 0;
 
-    // Ignore range input element
-    if (el.nodeName === 'INPUT' && el.getAttribute('type') === 'range') {
-    return;
-    }
+            // Store enabled status
+            var enabled = false;
 
-    var scrolling = style.getPropertyValue('-webkit-overflow-scrolling');
-    var overflowY = style.getPropertyValue('overflow-y');
-    var height = parseInt(style.getPropertyValue('height'), 10);
+            var supportsPassiveOption = false;
+            try {
+            var opts = Object.defineProperty({}, 'passive', {
+            get: function() {
+            supportsPassiveOption = true;
+            }
+            });
+            window.addEventListener('test', null, opts);
+            } catch (e) {}
 
-    // Determine if the element should scroll
-    var isScrollable = scrolling === 'touch' && (overflowY === 'auto' || overflowY === 'scroll');
-    var canScroll = el.scrollHeight > el.offsetHeight;
+            var handleTouchmove = function(evt) {
+            // Get the element that was scrolled upon
+            var el = evt.target;
 
-    if (isScrollable && canScroll) {
-    // Get the current Y position of the touch
-    var curY = evt.touches ? evt.touches[0].screenY : evt.screenY;
+            // Allow zooming
+            var zoom = window.innerWidth / window.document.documentElement.clientWidth;
+            if (evt.touches.length > 1 || zoom !== 1) {
+            return;
+            }
 
-    // Determine if the user is trying to scroll past the top or bottom
-    // In this case, the window will bounce, so we have to prevent scrolling completely
-    var isAtTop = (startY <= curY && el.scrollTop === 0);
-    var isAtBottom = (startY >= curY && el.scrollHeight - el.scrollTop === height);
+            // Check all parent elements for scrollability
+            while (el !== document.body && el !== document) {
+            // Get some style properties
+            var style = window.getComputedStyle(el);
 
-    // Stop a bounce bug when at the bottom or top of the scrollable element
-    if (isAtTop || isAtBottom) {
-    	evt.preventDefault();
-    }
+            if (!style) {
+            // If we've encountered an element we can't compute the style for, get out
+            break;
+            }
 
-    // No need to continue up the DOM, we've done our job
-    return;
-    }
+            // Ignore range input element
+            if (el.nodeName === 'INPUT' && el.getAttribute('type') === 'range') {
+            return;
+            }
 
-    // Test the next parent
-    el = el.parentNode;
-    }
+            var scrolling = style.getPropertyValue('-webkit-overflow-scrolling');
+            var overflowY = style.getPropertyValue('overflow-y');
+            var height = parseInt(style.getPropertyValue('height'), 10);
 
-    // Stop the bouncing -- no parents are scrollable
-    evt.preventDefault();
-    };
+            // Determine if the element should scroll
+            var isScrollable = scrolling === 'touch' && (overflowY === 'auto' || overflowY === 'scroll');
+            var canScroll = el.scrollHeight > el.offsetHeight;
 
-    var handleTouchstart = function(evt) {
-    // Store the first Y position of the touch
-    startY = evt.touches ? evt.touches[0].screenY : evt.screenY;
-    };
+            if (isScrollable && canScroll) {
+            // Get the current Y position of the touch
+            var curY = evt.touches ? evt.touches[0].screenY : evt.screenY;
 
-    var enable = function() {
-    // Listen to a couple key touch events
-    window.addEventListener('touchstart', handleTouchstart, supportsPassiveOption ? { passive : false } : false);
-    window.addEventListener('touchmove', handleTouchmove, supportsPassiveOption ? { passive : false } : false);
-    enabled = true;
-    };
+            // Determine if the user is trying to scroll past the top or bottom
+            // In this case, the window will bounce, so we have to prevent scrolling completely
+            var isAtTop = (startY <= curY && el.scrollTop === 0);
+            var isAtBottom = (startY >= curY && el.scrollHeight - el.scrollTop === height);
 
-    var disable = function() {
-    // Stop listening
-    window.removeEventListener('touchstart', handleTouchstart, false);
-    window.removeEventListener('touchmove', handleTouchmove, false);
-    enabled = false;
-    };
+            // Stop a bounce bug when at the bottom or top of the scrollable element
+            if (isAtTop || isAtBottom) {
+              evt.preventDefault();
+            }
 
-    var isEnabled = function() {
-    return enabled;
-    };
+            // No need to continue up the DOM, we've done our job
+            return;
+            }
 
-    // Enable by default if the browser supports -webkit-overflow-scrolling
-    // Test this by setting the property with JavaScript on an element that exists in the DOM
-    // Then, see if the property is reflected in the computed style
-    var testDiv = document.createElement('div');
-    document.documentElement.appendChild(testDiv);
-    testDiv.style.WebkitOverflowScrolling = 'touch';
-    var isScrollSupported = 'getComputedStyle' in window && window.getComputedStyle(testDiv)['-webkit-overflow-scrolling'] === 'touch';
-    document.documentElement.removeChild(testDiv);
+            // Test the next parent
+            el = el.parentNode;
+            }
 
-    if (isScrollSupported) {
-    enable();
-    }
+            // Stop the bouncing -- no parents are scrollable
+            evt.preventDefault();
+            };
 
-    // A module to support enabling/disabling iNoBounce
-    var iNoBounce = {
-    enable: enable,
-    disable: disable,
-    isEnabled: isEnabled,
-    isScrollSupported: isScrollSupported
-    };
+            var handleTouchstart = function(evt) {
+            // Store the first Y position of the touch
+            startY = evt.touches ? evt.touches[0].screenY : evt.screenY;
+            };
 
-    global.iNoBounce = iNoBounce;
-    }(this));
-      </script>
+            var enable = function() {
+            // Listen to a couple key touch events
+            window.addEventListener('touchstart', handleTouchstart, supportsPassiveOption ? { passive : false } : false);
+            window.addEventListener('touchmove', handleTouchmove, supportsPassiveOption ? { passive : false } : false);
+            enabled = true;
+            };
+
+            var disable = function() {
+            // Stop listening
+            window.removeEventListener('touchstart', handleTouchstart, false);
+            window.removeEventListener('touchmove', handleTouchmove, false);
+            enabled = false;
+            };
+
+            var isEnabled = function() {
+            return enabled;
+            };
+
+            // Enable by default if the browser supports -webkit-overflow-scrolling
+            // Test this by setting the property with JavaScript on an element that exists in the DOM
+            // Then, see if the property is reflected in the computed style
+            var testDiv = document.createElement('div');
+            document.documentElement.appendChild(testDiv);
+            testDiv.style.WebkitOverflowScrolling = 'touch';
+            var isScrollSupported = 'getComputedStyle' in window && window.getComputedStyle(testDiv)['-webkit-overflow-scrolling'] === 'touch';
+            document.documentElement.removeChild(testDiv);
+
+            if (isScrollSupported) {
+            enable();
+            }
+
+            // A module to support enabling/disabling iNoBounce
+            var iNoBounce = {
+            enable: enable,
+            disable: disable,
+            isEnabled: isEnabled,
+            isScrollSupported: isScrollSupported
+            };
+
+            global.iNoBounce = iNoBounce;
+          }(this));
+        </script>
         <script src="/static/app.js"></script>
       </body>
     </html>
