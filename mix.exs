@@ -35,8 +35,8 @@ defmodule BlinkenLights.MixProject do
 
   defp aliases do
     shared = [
-      "esbuild default",
-      "tailwind default",
+      "esbuild default --minify",
+      "tailwind default --minify",
       "run --no-halt"
     ]
 
