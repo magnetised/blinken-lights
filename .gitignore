@@ -28,3 +28,4 @@ blinken_lights-*.tar
 /target
 assets/node_modules
 priv/static/assets
+.state
