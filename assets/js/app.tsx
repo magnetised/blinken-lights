@@ -62,12 +62,18 @@ const ConnectionIcon = ({ text }) => {
     </div>
   );
 };
+
 const WebSocketProvider = ({ children }) => {
   const [socketUrl, setSocketUrl] = useState(
     `ws://${window.location.host}/websocket`,
   );
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
-    shouldReconnect: (_closeEvent) => true,
+    shouldReconnect: (closeEvent) => {
+      console.log(closeEvent);
+      return true;
+    },
+    // heartbeat: { message: JSON.stringify({ type: "ping", interval: 2000 }) },
+    heartbeat: { message: "ping", interval: 2000 },
   });
 
   const [ready, setReady] = useState(false);

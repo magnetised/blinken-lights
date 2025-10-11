@@ -11,9 +11,6 @@ importers:
       '@tailwindcss/cli':
         specifier: ^4.1.13
         version: 4.1.13
-      daisyui:
-        specifier: ^5.1.24
-        version: 5.1.24
       konva:
         specifier: ^10.0.2
         version: 10.0.2
@@ -27,8 +24,8 @@ importers:
         specifier: ^19.0.10
         version: 19.0.10(@types/react@19.2.0)(konva@10.0.2)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react-use-websocket:
-        specifier: 3.0.0
-        version: 3.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        specifier: ^4.13.0
+        version: 4.13.0
       socket.io:
         specifier: ^4.8.1
         version: 4.8.1
@@ -287,9 +284,6 @@ packages:
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
 
-  daisyui@5.1.24:
-    resolution: {integrity: sha512-CFfVmaTNOM4H6rJ7YjD8pIZNmRg6merSI2Yx0cP2cOSvyfG571zSPf8Y8m6rLqsteVrE6cqI+hBcpJqNB3YqkA==}
-
   debug@4.3.7:
     resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
     engines: {node: '>=6.0'}
@@ -481,11 +475,8 @@ packages:
     peerDependencies:
       react: ^19.1.0
 
-  react-use-websocket@3.0.0:
-    resolution: {integrity: sha512-BInlbhXYrODBPKIplDAmI0J1VPM+1KhCLN09o+dzgQ8qMyrYs4t5kEYmCrTqyRuMTmpahylHFZWQXpfYyDkqOw==}
-    peerDependencies:
-      react: '>= 16.8.0'
-      react-dom: '>= 16.8.0'
+  react-use-websocket@4.13.0:
+    resolution: {integrity: sha512-anMuVoV//g2N76Wxqvqjjo1X48r9Np3y1/gMl7arX84tAPXdy5R7sB5lO5hvCzQRYjqXwV8XMAiEBOUbyrZFrw==}
 
   react@19.1.1:
     resolution: {integrity: sha512-w8nqGImo45dmMIfljjMwOGtbmC/mk4CMYhWIicdSflH91J9TyCyczcPFXJzrZ/ZXcgGRFeP6BU0BEJTw6tZdfQ==}
@@ -771,8 +762,6 @@ snapshots:
 
   csstype@3.1.3: {}
 
-  daisyui@5.1.24: {}
-
   debug@4.3.7:
     dependencies:
       ms: 2.1.3
@@ -931,10 +920,7 @@ snapshots:
       react: 19.1.1
       scheduler: 0.26.0
 
-  react-use-websocket@3.0.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
-    dependencies:
-      react: 19.1.1
-      react-dom: 19.1.1(react@19.1.1)
+  react-use-websocket@4.13.0: {}
 
   react@19.1.1: {}
 

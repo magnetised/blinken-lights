@@ -9,16 +9,26 @@ defmodule BlinkenLights.Websocket do
     {:ok, config} = DisplayConfig.get_active()
     {:ok, data} = DisplayConfig.for_websocket(config)
     {:ok, msg} = Jason.encode(%{control: "initial-state", msg: data})
-    {:push, [{:text, msg}], []}
+    {:push, [{:text, msg}], %{ping_timer: nil}}
+  end
+
+  def handle_in({"ping", [opcode: :text]}, state) do
+    dbg(:oing)
+    {:ok, schedule_disconnect(state)}
   end
 
   def handle_in({client_message, [opcode: :text]}, state) do
-    case Jason.decode(client_message) do
-      {:ok, msg} -> handle_msg(msg)
-      {:error, reason} -> Logger.error("Invalid JSON from client: #{reason}")
-    end
+    state =
+      case Jason.decode(client_message) do
+        {:ok, msg} ->
+          handle_msg(msg, state)
 
-    {:ok, state}
+        {:error, reason} ->
+          Logger.error("Invalid JSON from client: #{reason}")
+          state
+      end
+
+    {:ok, schedule_disconnect(state)}
   end
 
   def handle_in({client_message, opcode}, state) do
@@ -28,12 +38,12 @@ defmodule BlinkenLights.Websocket do
 
   def handle_info({:config_change, config}, state) do
     {:ok, msg} = Jason.encode(%{control: "config-change", msg: Map.new(config)})
-    {:push, [{:text, msg}], state}
+    {:push, [{:text, msg}], schedule_disconnect(state)}
   end
 
   def handle_info({:text, server_message}, state) do
     dbg(text: server_message)
-    {:push, {:text, server_message}, state}
+    {:push, {:text, server_message}, schedule_disconnect(state)}
   end
 
   def handle_info({:close, code, reason}, state) do
@@ -41,12 +51,18 @@ defmodule BlinkenLights.Websocket do
     {:ok, state}
   end
 
-  defp handle_msg(%{"type" => "status_update", "value" => "ready"}) do
-    IO.puts("Connection ready: #{inspect(self())}")
-    {:ok, _} = Registry.register(BlinkenLights.PubSub, :config, [])
+  def handle_info(:disconnect, state) do
+    dbg(:disconnect)
+    {:stop, :normal, state}
   end
 
-  defp handle_msg(%{"type" => "control_update", "control" => control, "value" => value}) do
+  defp handle_msg(%{"type" => "status_update", "value" => "ready"}, state) do
+    IO.puts("Connection ready: #{inspect(self())}")
+    {:ok, _} = Registry.register(BlinkenLights.PubSub, :config, [])
+    state
+  end
+
+  defp handle_msg(%{"type" => "control_update", "control" => control, "value" => value}, state) do
     case control do
       "color_cycle" ->
         [colour_cycle: value]
@@ -80,5 +96,13 @@ defmodule BlinkenLights.Websocket do
         []
     end
     |> BlinkenLights.config()
+
+    state
+  end
+
+  defp schedule_disconnect(state) do
+    if timer = state.ping_timer, do: Process.cancel_timer(timer)
+    ref = Process.send_after(self(), :disconnect, 8000)
+    %{state | ping_timer: ref}
   end
 end
