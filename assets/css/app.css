@@ -30,3 +30,7 @@ body,
   /* color: #393e43; */
   color: #565c61;
 }
+
+.tab-active {
+  border-bottom-color: #7b888a;
+}

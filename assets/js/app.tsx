@@ -284,7 +284,7 @@ const ColorControls = () => {
       }
     };
   };
-  // Calculate current color
+
   const hslColor = (c: DisplayColour) => {
     return `hsl(${c.hue} ${c.saturation * 100}% ${50 + (1 - c.saturation) * 50}%)`;
   };
@@ -324,11 +324,20 @@ const ColorControls = () => {
     [value, setter] = [black, setBlack];
   }
 
-  const Tab = ({ keyBg, color, onClick, isActive }) => {
-    const height = "h-lh";
+  const Tab = ({
+    keyBg,
+    color,
+    onClick,
+    isActive,
+  }: {
+    keyBg: string;
+    color: DisplayColour;
+    onClick: () => void;
+    isActive: boolean;
+  }) => {
     return (
       <div
-        className={`flex flex-row items-center grow gap-1 border-b-1 ${isActive ? "border-b-transparent" : "border-b-black opacity-50"}`}
+        className={`flex flex-row items-center grow gap-1 border-b-2 ${isActive ? "tab-active" : ""}`}
         onClick={onClick}
         onTouchStart={onClick}
       >
@@ -340,6 +349,7 @@ const ColorControls = () => {
       </div>
     );
   };
+
   return (
     <div
       onTouchStart={() => setGlobalTouch(true)}
