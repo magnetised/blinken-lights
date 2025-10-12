@@ -25,7 +25,7 @@ defmodule BlinkenLights.Router do
         <link rel="stylesheet" href="/static/app.css" />
         <title>Lights</title>
       </head>
-      <body class="--bg-gray-900">
+      <body>
         <div id="root"></div>
         <script>
           window.addEventListener('beforeinstallprompt', (e) => {

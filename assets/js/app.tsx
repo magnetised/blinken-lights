@@ -222,7 +222,7 @@ const ConnectionStatus = ({ children }) => {
   return (
     <div>
       <ConnectionIcon />
-      <div className={`relative ${isConnected() ? "" : "opacity-10"}`}>
+      <div className={`${isConnected() ? "" : "relative opacity-10"}`}>
         {children}
         {!isConnected() ? (
           <div
@@ -274,7 +274,6 @@ const ColorControls = () => {
 
       // Send WebSocket message
       if (isConnected()) {
-        console.log("sendmessage", newValue);
         sendMessage({
           type: "control_update",
           control: name,
@@ -337,15 +336,18 @@ const ColorControls = () => {
   }) => {
     return (
       <div
-        className={`flex flex-row items-center grow gap-1 border-b-2 ${isActive ? "tab-active" : ""}`}
+        className={`flex flex-row items-center grow p-[10px] gap-1 ${isActive ? "" : "tab-inactive"}`}
         onClick={onClick}
         onTouchStart={onClick}
       >
-        <div className={`w-[15px] h-[40px] ${keyBg}`}></div>
         <div
           style={{ backgroundColor: hslColor(color) }}
-          className={`flex grow h-[38px] rounded-sm`}
-        ></div>
+          className={`flex grow items-end h-[38px] rounded-sm p-[4px]`}
+        >
+          <div
+            className={`h-[4px] w-full rounded-sm ${isActive ? keyBg : ""}`}
+          ></div>
+        </div>
       </div>
     );
   };
@@ -356,96 +358,113 @@ const ColorControls = () => {
       onTouchEnd={() => setGlobalTouch(false)}
     >
       <div className="flex flex-col gap-5">
-        <div className="flex flex-row gap-2">
-          <Tab
-            keyBg={"bg-white"}
-            color={white}
-            isActive={active === "white"}
-            onClick={() => setActive("white")}
-          />
-          <Tab
-            keyBg={"bg-black"}
-            color={black}
-            isActive={active === "black"}
-            onClick={() => setActive("black")}
-          />
-        </div>
-        <div className="flex flex-row gap-3">
-          <div className="flex flex-col grow">
-            <div className="flex flex-col justify-center">
-              <ColorWheel
-                size={WHEEL_SIZE}
-                value={value.hue}
-                onChange={handleChange(active, setter, (v) => ({
-                  ...value,
-                  hue: v,
-                }))}
-                disabled={colorCycle}
-              />
+        <div className="bg-black/60 flex flex-col grow justify-center pb-[10px]">
+          <div className="flex justify-center">
+            <div className="max-w-[390px]">
+              <div className=" flex flex-col justify-center">
+                <div className="flex flex-row grow">
+                  <Tab
+                    keyBg={"bg-white"}
+                    color={white}
+                    isActive={active === "white"}
+                    onClick={() => setActive("white")}
+                  />
+                  <Tab
+                    keyBg={"bg-black"}
+                    color={black}
+                    isActive={active === "black"}
+                    onClick={() => setActive("black")}
+                  />
+                </div>
+                <div className="flex flex-row gap-3 pt-[10px]">
+                  <div className="flex flex-col grow">
+                    <div className="flex flex-col justify-center">
+                      <ColorWheel
+                        size={WHEEL_SIZE}
+                        value={value.hue}
+                        onChange={handleChange(active, setter, (v) => ({
+                          ...value,
+                          hue: v,
+                        }))}
+                        disabled={colorCycle}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col justify-center text-center">
+                    <div className="flex flex-col justify-center">
+                      <Slider
+                        globalTouch={globalTouch}
+                        height={WHEEL_SIZE}
+                        value={value.saturation}
+                        onChange={handleChange(active, setter, (v) => ({
+                          ...value,
+                          saturation: v,
+                        }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex flex-col justify-center text-center">
-            <div className="flex flex-col justify-center">
-              <Slider
-                globalTouch={globalTouch}
-                height={WHEEL_SIZE}
-                value={value.saturation}
-                onChange={handleChange(active, setter, (v) => ({
-                  ...value,
-                  saturation: v,
-                }))}
-              />
-            </div>
-          </div>
         </div>
+        <div className="flex justify-center">
+          <div className="max-w-[390px]">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col">
+                <Label name="Colour Cycle" value={cycleDuration()} />
+                <ScaleSlider
+                  width={horizSliderWidth}
+                  value={colorCycleSpeed}
+                  toggle={colorCycle}
+                  minValue={0}
+                  maxValue={1.0}
+                  onChange={handleChange(
+                    "color_cycle_speed",
+                    setColorCycleSpeed,
+                  )}
+                  onToggle={handleChange("color_cycle", setColorCycle)}
+                  globalTouch={globalTouch}
+                />
+              </div>
+              <div className="flex flex-col">
+                <Label name="Brightness" value={brightness} />
 
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col">
-            <Label name="Colour Cycle" value={cycleDuration()} />
-            <ScaleSlider
-              width={horizSliderWidth}
-              value={colorCycleSpeed}
-              toggle={colorCycle}
-              minValue={0}
-              maxValue={1.0}
-              onChange={handleChange("color_cycle_speed", setColorCycleSpeed)}
-              onToggle={handleChange("color_cycle", setColorCycle)}
-              globalTouch={globalTouch}
-            />
-          </div>
-          <div className="flex flex-col">
-            <Label name="Brightness" value={brightness} />
-
-            <HorizontalSlider
-              globalTouch={globalTouch}
-              width={horizSliderWidth}
-              value={brightness}
-              onChange={handleChange("brightness", setBrightness)}
-            />
-          </div>
-          <div className="flex flex-col">
-            <Label name="Sustain" value={fade} />
-            <HorizontalSlider
-              globalTouch={globalTouch}
-              width={horizSliderWidth}
-              value={fade}
-              valueMap={(value) => Math.pow(value, 1 / 3.2)}
-              inverseValueMap={(value) => Math.pow(value, 3.2)}
-              onChange={handleChange("fade", setFade)}
-            />
-          </div>
-          <div className="flex flex-col">
-            <Label name="Scale" value={scale ? `${decay.toFixed(1)}` : "OFF"} />
-            <ScaleSlider
-              width={horizSliderWidth}
-              value={decay}
-              toggle={scale}
-              minValue={1.0}
-              maxValue={4.0}
-              globalTouch={globalTouch}
-              onChange={handleChange("decay", setDecay)}
-              onToggle={handleChange("scale", setScale)}
-            />
+                <HorizontalSlider
+                  globalTouch={globalTouch}
+                  width={horizSliderWidth}
+                  value={brightness}
+                  onChange={handleChange("brightness", setBrightness)}
+                />
+              </div>
+              <div className="flex flex-col">
+                <Label name="Sustain" value={fade} />
+                <HorizontalSlider
+                  globalTouch={globalTouch}
+                  width={horizSliderWidth}
+                  value={fade}
+                  valueMap={(value) => Math.pow(value, 1 / 3.2)}
+                  inverseValueMap={(value) => Math.pow(value, 3.2)}
+                  onChange={handleChange("fade", setFade)}
+                />
+              </div>
+              <div className="flex flex-col">
+                <Label
+                  name="Scale"
+                  value={scale ? `${decay.toFixed(1)}` : "OFF"}
+                />
+                <ScaleSlider
+                  width={horizSliderWidth}
+                  value={decay}
+                  toggle={scale}
+                  minValue={1.0}
+                  maxValue={4.0}
+                  globalTouch={globalTouch}
+                  onChange={handleChange("decay", setDecay)}
+                  onToggle={handleChange("scale", setScale)}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -456,18 +475,10 @@ const ColorControls = () => {
 const App = () => {
   return (
     <WebSocketProvider>
-      <div className="flex justify-center">
-        <div className="max-w-[390px] flex flex-col">
-          <ConnectionStatus>
-            <div className="min-h-screen p-3">
-              <div className="">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <ColorControls />
-                </div>
-              </div>
-            </div>
-          </ConnectionStatus>
-        </div>
+      <div className="flex flex-col grow">
+        <ConnectionStatus>
+          <ColorControls />
+        </ConnectionStatus>
       </div>
     </WebSocketProvider>
   );
