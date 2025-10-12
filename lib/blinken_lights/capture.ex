@@ -30,7 +30,7 @@ defmodule BlinkenLights.Capture do
   end
 
   def handle_call({:set_config, attrs}, _from, {port, config}) do
-    config = Enum.reduce(attrs, config, &set_attr/2) |> dbg
+    config = Enum.reduce(attrs, config, &set_attr/2)
     send_config({port, config})
     {:reply, {:ok, config}, {port, config}}
   end

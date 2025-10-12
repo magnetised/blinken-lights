@@ -38,7 +38,6 @@ defmodule BlinkenLights.DisplayConfig do
   end
 
   def for_websocket(%__MODULE__{} = config) do
-    dbg(config)
     {:ok, config}
   end
 

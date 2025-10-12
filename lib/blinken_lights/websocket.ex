@@ -36,7 +36,6 @@ defmodule BlinkenLights.Websocket do
   end
 
   def handle_info({:config_change, config}, state) do
-    dbg(change: config)
     {:ok, msg} = Jason.encode(%{control: "config-change", msg: Map.new(config)})
     {:push, [{:text, msg}], schedule_disconnect(state)}
   end
@@ -64,8 +63,6 @@ defmodule BlinkenLights.Websocket do
   end
 
   defp handle_msg(%{type: "control_update", control: control, value: value}, state) do
-    dbg({control, value})
-
     case control do
       "color_cycle" ->
         [colour_cycle: value]
