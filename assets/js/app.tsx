@@ -313,11 +313,16 @@ const ColorControls = () => {
     const duration = 360 * (interval / 1000);
     return `${duration.toFixed(1)}s`;
   };
-  const controls = {
-    white: { name: "white", setter: setWhite, value: white },
-    black: { name: "black", setter: setBlack, value: black },
-  };
-  const [active, setActive] = useState(controls.white);
+  const [active, setActive] = useState("white");
+
+  let setter;
+  let value;
+
+  if (active === "white") {
+    [value, setter] = [white, setWhite];
+  } else {
+    [value, setter] = [black, setBlack];
+  }
 
   const Tab = ({ keyBg, color, onClick, isActive }) => {
     const height = "h-lh";
@@ -345,14 +350,14 @@ const ColorControls = () => {
           <Tab
             keyBg={"bg-white"}
             color={white}
-            isActive={active.name === "white"}
-            onClick={(_e) => setActive(controls.white)}
+            isActive={active === "white"}
+            onClick={() => setActive("white")}
           />
           <Tab
             keyBg={"bg-black"}
             color={black}
-            isActive={active.name === "black"}
-            onClick={(_e) => setActive(controls.black)}
+            isActive={active === "black"}
+            onClick={() => setActive("black")}
           />
         </div>
         <div className="flex flex-row gap-3">
@@ -360,9 +365,9 @@ const ColorControls = () => {
             <div className="flex flex-col justify-center">
               <ColorWheel
                 size={WHEEL_SIZE}
-                value={active.value.hue}
-                onChange={handleChange(active.name, active.setter, (v) => ({
-                  ...active.value,
+                value={value.hue}
+                onChange={handleChange(active, setter, (v) => ({
+                  ...value,
                   hue: v,
                 }))}
                 disabled={colorCycle}
@@ -374,9 +379,9 @@ const ColorControls = () => {
               <Slider
                 globalTouch={globalTouch}
                 height={WHEEL_SIZE}
-                value={active.value.saturation}
-                onChange={handleChange(active.name, active.setter, (v) => ({
-                  ...active.value,
+                value={value.saturation}
+                onChange={handleChange(active, setter, (v) => ({
+                  ...value,
                   saturation: v,
                 }))}
               />
