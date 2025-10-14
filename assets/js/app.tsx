@@ -111,8 +111,7 @@ const WebSocketProvider = ({ children }) => {
         console.log(closeEvent);
         return true;
       },
-      // heartbeat: { message: JSON.stringify({ type: "ping", interval: 2000 }) },
-      heartbeat: { message: "ping", interval: 2000 },
+      heartbeat: { message: "ping", interval: 1000 },
     },
   );
 
@@ -372,49 +371,51 @@ const ColorControls = () => {
       onTouchEnd={() => setGlobalTouch(false)}
     >
       <div className="flex flex-col gap-5">
-        <div className="bg-black/60 flex flex-col grow justify-center pb-[10px]">
+        <div className="bg-black/20 flex flex-col grow justify-center pb-[10px]">
           <div className="flex justify-center">
-            <div className="max-w-[390px]">
-              <div className=" flex flex-col justify-center">
-                <div className="flex flex-row grow">
-                  <Tab
-                    keyBg={"bg-white"}
-                    color={white}
-                    isActive={active === "white"}
-                    onClick={() => setActive("white")}
-                  />
-                  <Tab
-                    keyBg={"bg-black"}
-                    color={black}
-                    isActive={active === "black"}
-                    onClick={() => setActive("black")}
-                  />
-                </div>
-                <div className="flex flex-row gap-3 pt-[10px]">
-                  <div className="flex flex-col grow">
-                    <div className="flex flex-col justify-center">
-                      <ColorWheel
-                        size={WHEEL_SIZE}
-                        value={value.hue}
-                        onChange={handleChange(active, setter, (v) => ({
-                          ...value,
-                          hue: v,
-                        }))}
-                        disabled={colorCycle}
-                      />
+            <div className=" flex flex-col justify-center grow">
+              <div className="flex flex-row grow">
+                <Tab
+                  keyBg={"bg-white"}
+                  color={white}
+                  isActive={active === "white"}
+                  onClick={() => setActive("white")}
+                />
+                <Tab
+                  keyBg={"bg-black"}
+                  color={black}
+                  isActive={active === "black"}
+                  onClick={() => setActive("black")}
+                />
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="max-w-[390px]">
+                  <div className="flex flex-row gap-3 pt-[10px]">
+                    <div className="flex flex-col grow">
+                      <div className="flex flex-col justify-center">
+                        <ColorWheel
+                          size={WHEEL_SIZE}
+                          value={value.hue}
+                          onChange={handleChange(active, setter, (v) => ({
+                            ...value,
+                            hue: v,
+                          }))}
+                          disabled={colorCycle}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col justify-center text-center">
-                    <div className="flex flex-col justify-center">
-                      <Slider
-                        globalTouch={globalTouch}
-                        height={WHEEL_SIZE}
-                        value={value.saturation}
-                        onChange={handleChange(active, setter, (v) => ({
-                          ...value,
-                          saturation: v,
-                        }))}
-                      />
+                    <div className="flex flex-col justify-center text-center">
+                      <div className="flex flex-col justify-center">
+                        <Slider
+                          globalTouch={globalTouch}
+                          height={WHEEL_SIZE}
+                          value={value.saturation}
+                          onChange={handleChange(active, setter, (v) => ({
+                            ...value,
+                            saturation: v,
+                          }))}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
