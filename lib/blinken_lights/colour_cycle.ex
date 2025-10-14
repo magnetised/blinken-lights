@@ -36,7 +36,7 @@ defmodule BlinkenLights.ColourCycle do
   end
 
   def init(config) do
-    %{white: white, black: black, colour_cycle_speed: speed} = config
+    %{white: %{hue: white}, black: %{hue: black}, colour_cycle_speed: speed} = config
     {:ok, %{white: white, black: black, speed: speed}, {:continue, :start}}
   end
 
@@ -65,7 +65,7 @@ defmodule BlinkenLights.ColourCycle do
       %{white: white, black: black, speed: speed} =
       state |> next(:white) |> next(:black)
 
-    BlinkenLights.config(white: white, black: black)
+    BlinkenLights.config(white: %{hue: white}, black: %{hue: black})
 
     ## if you change this interval calculation, change the duration calculation
     # in app.tsx

@@ -101,6 +101,7 @@ type DisplayConfig = {
   scale: boolean;
   decay: number;
 };
+type DisplayColourUpdate = { hue?: number; saturation?: number };
 
 const WebSocketProvider = ({ children }) => {
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(
@@ -127,13 +128,26 @@ const WebSocketProvider = ({ children }) => {
   const [decay, setDecay] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
 
+  const setColor = (
+    update: DisplayColourUpdate,
+    value: DisplayColour,
+    setter,
+  ) => {
+    let newValue = { ...value };
+    for (const [key, v] of Object.entries(update)) {
+      if (newValue.hasOwnProperty(key)) {
+        newValue[key] = v;
+      }
+    }
+    setter(newValue);
+  };
   // type ConfigSettersMap = Record<
   //   keyof typeof ConfigSetterKey,
   //   (val: DisplayConfigValue) => DisplayConfigValue
   // >;
   const setters = {
-    white: setWhite,
-    black: setBlack,
+    white: (v: DisplayColourUpdate) => setColor(v, white, setWhite),
+    black: (v: DisplayColourUpdate) => setColor(v, black, setBlack),
     brightness: setBrightness,
     fade: setFade,
     dark_mode: setDarkMode,
