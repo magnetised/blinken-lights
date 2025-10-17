@@ -12,6 +12,7 @@ import {
 import { BROWSER_WIDTH, WHEEL_SIZE, THUMB_SIZE } from "./constants.ts";
 
 const selectorRadius = 20;
+
 const Selector = ({ value, onChange, centre, radius, borderColor }) => {
   const r = Math.PI / 180;
   const hw = centre;
@@ -35,7 +36,6 @@ const Selector = ({ value, onChange, centre, radius, borderColor }) => {
       x: Math.round((pos.x - centre) * scale + centre),
     };
   };
-  // calc position from hue...
   const pos = {
     x: centre + radius * Math.cos(value * r),
     y: centre + radius * Math.sin(value * r),
@@ -60,8 +60,13 @@ const Selector = ({ value, onChange, centre, radius, borderColor }) => {
     />
   );
 };
-export const ColorWheel = ({ size, value, onChange, disabled }) => {
-  // const [size, setWidth] = React.useState(300);
+export const ColorWheel = ({
+  size,
+  value,
+  onChange,
+  disabled,
+  selectorColor,
+}) => {
   const wheelThickness = 30;
   const mainRadius = size / 2 - wheelThickness / 4;
   const centre = mainRadius + wheelThickness / 8 + 4;
@@ -99,11 +104,6 @@ export const ColorWheel = ({ size, value, onChange, disabled }) => {
 
   const div = React.useRef(null);
 
-  // React.useEffect(() => {
-  //   setWidth(div.current.clientWidth * 0.75);
-  // }, []);
-
-  const arcRadius = mainRadius - wheelThickness - 20;
   return (
     <div className="flex justify-center align-center" ref={div}>
       <Stage width={size} height={size}>
@@ -114,24 +114,10 @@ export const ColorWheel = ({ size, value, onChange, disabled }) => {
           <Selector
             onChange={onChange}
             value={value}
-            borderColor="#ffffff"
+            borderColor={selectorColor}
             centre={centre}
             radius={mainRadius - wheelThickness / 2}
           />
-          {/* <Circle */}
-          {/*   radius={mainRadius / 4 + 10} */}
-          {/*   x={centre - mainRadius / 4 - 6} */}
-          {/*   y={centre} */}
-          {/*   fill={whiteColor} */}
-          {/*   stroke={"#fff"} */}
-          {/*   strokeWidth={3} */}
-          {/* /> */}
-          {/* <Circle */}
-          {/*   radius={mainRadius / 4 - 2} */}
-          {/*   x={centre + mainRadius / 4 + 2 + 6 + 10 + 2} */}
-          {/*   y={centre} */}
-          {/*   fill={blackColor} */}
-          {/* /> */}
         </Layer>
       </Stage>
     </div>

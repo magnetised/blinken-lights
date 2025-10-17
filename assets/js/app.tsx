@@ -401,6 +401,7 @@ const ColorControls = () => {
                             hue: v,
                           }))}
                           disabled={colorCycle}
+                          selectorColor={active === "white" ? "#fff" : "#000"}
                         />
                       </div>
                     </div>
