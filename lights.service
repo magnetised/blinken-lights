@@ -1,0 +1,17 @@
+[Unit]
+Description=Das Blinkenlights
+After=network.target
+
+[Service]
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/lights/blinken-lights
+Environment="PATH=/home/pi/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/usr/bin/mix lights
+Type=exec
+Restart=always
+
+
+
+[Install]
+WantedBy=multi-user.target
