@@ -83,13 +83,16 @@ defmodule BlinkenLights.DarkMode do
   end
 
   defp converge(:dark, display_config, %{active: :light} = state) do
-    Logger.debug("Darkmode activating")
     display_config = resolve_config(display_config)
+
+    target = Map.fetch!(state.dark_target, display_config.scale)
+
+    Logger.debug("Darkmode activating, target: #{inspect(target)}")
 
     converge(:dark, display_config, %{
       state
       | original: original(display_config, state),
-        target: state.dark_target,
+        target: target,
         active: :dark
     })
   end
@@ -140,7 +143,8 @@ defmodule BlinkenLights.DarkMode do
   defp resolve_config(%DisplayConfig{} = config), do: config
 
   defp original(display_config, state) do
-    Map.take(display_config, Keyword.keys(state.dark_target)) |> Enum.to_list()
+    target = Map.fetch!(state.dark_target, display_config.scale)
+    Map.take(display_config, Keyword.keys(target)) |> Enum.to_list()
   end
 
   defp schedule_check(state) do

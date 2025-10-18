@@ -14,7 +14,9 @@ defmodule BlinkenLights.Application do
       {BlinkenLights.DisplayConfig, %BlinkenLights.DisplayConfig{}},
       BlinkenLights.Capture,
       {BlinkenLights.DarkMode,
-       start_time: ~T[21:00:00], end_time: ~T[08:00:00], dark_target: [brightness: 0.05]},
+       start_time: ~T[21:00:00],
+       end_time: ~T[08:00:00],
+       dark_target: %{false => [brightness: 0.05], true => [brightness: 0.20]}},
       BlinkenLights.State
     ]
 
