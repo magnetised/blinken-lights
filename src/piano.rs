@@ -96,6 +96,7 @@ fn exponential_decay(x: f32, steepness: f32) -> f32 {
     (-steepness * x).exp()
 }
 
+#[allow(dead_code)]
 fn normal_decay(x: f32, sigma: f32) -> f32 {
     let x = x.clamp(0.0, 1.0);
     let gaussian = (-0.5 * (x / sigma).powi(2)).exp();

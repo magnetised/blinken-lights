@@ -2,8 +2,6 @@
 
 use crate::display;
 
-use crate::piano::{key_colour, KeyColour};
-
 pub struct Null {}
 
 impl Null {

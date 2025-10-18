@@ -1,8 +1,6 @@
 defmodule BlinkenLights.State do
   use GenServer
 
-  alias BlinkenLights.DisplayConfig
-
   require Logger
 
   @write_debounce_timeout 5_000
