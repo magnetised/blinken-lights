@@ -1,6 +1,8 @@
 defmodule BlinkenLights.DarkMode do
   use GenServer
+
   alias BlinkenLights.DisplayConfig
+
   @midnight 24 * 3600 - 1
 
   require Logger
@@ -78,37 +80,49 @@ defmodule BlinkenLights.DarkMode do
     end
   end
 
-  defp converge(mode, _display_config, %{target: nil, active: mode} = state) do
+  defp converge(mode, display_config, state, extras \\ [])
+
+  defp converge(mode, _display_config, %{target: nil, active: mode} = state, _extras) do
     {state, []}
   end
 
-  defp converge(:dark, display_config, %{active: :light} = state) do
+  defp converge(:dark, display_config, %{active: :light} = state, _extras) do
     display_config = resolve_config(display_config)
 
     target = Map.fetch!(state.dark_target, display_config.scale)
 
     Logger.debug("Darkmode activating, target: #{inspect(target)}")
 
-    converge(:dark, display_config, %{
-      state
-      | original: original(display_config, state),
-        target: target,
-        active: :dark
-    })
+    converge(
+      :dark,
+      display_config,
+      %{
+        state
+        | original: original(display_config, state),
+          target: target,
+          active: :dark
+      },
+      dark_mode: true
+    )
   end
 
-  defp converge(:light, display_config, %{active: :dark} = state) do
+  defp converge(:light, display_config, %{active: :dark} = state, _extras) do
     Logger.debug("Darkmode de-activating")
     display_config = resolve_config(display_config)
 
-    converge(:light, display_config, %{
-      state
-      | target: state.original,
-        active: :light
-    })
+    converge(
+      :light,
+      display_config,
+      %{
+        state
+        | target: state.original,
+          active: :light
+      },
+      dark_mode: false
+    )
   end
 
-  defp converge(_mode, display_config, state) do
+  defp converge(_mode, display_config, state, extras) do
     %{target: target, step: step} = state
 
     display_config = resolve_config(display_config)
@@ -136,7 +150,7 @@ defmodule BlinkenLights.DarkMode do
         state
       end
 
-    {state, changes}
+    {state, extras ++ changes}
   end
 
   defp resolve_config(config_fun) when is_function(config_fun, 0), do: config_fun.()
