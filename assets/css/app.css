@@ -30,6 +30,9 @@ body,
   /* color: #393e43; */
   color: #565c61;
 }
+.darkmode {
+  fill: #565c61;
+}
 
 .tab-inactive {
   /* border-bottom-color: #7b888a; */

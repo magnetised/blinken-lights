@@ -42,13 +42,13 @@ type DisplayContext = {
   setDarkMode;
 };
 const WebSocketContext = createContext<DisplayContext | null>(null);
+const iconColour = "oklch(0.4859 0.0941 264.665)";
 
 const ConnectionIcon = (_props: { text?: string }) => {
   const { isConnected, darkMode } = joinWebSocket();
   const onClass = (onState: boolean, extra = "") => {
     return `stroke-none ${onState ? "opacity-90" : "opacity-10"} ${extra}`;
   };
-  const iconColour = "oklch(0.4859 0.0941 264.665)";
   return (
     <div className="fixed top-[0px] left-[0px] flex flex-row z-1000">
       {isConnected() ? (
@@ -67,20 +67,6 @@ const ConnectionIcon = (_props: { text?: string }) => {
         >
           <path d="M18.4961 10.7088L9.8603 19.5885C9.6207 19.8349 9.22228 19.5503 9.37764 19.2437L12.4518 13.1779C12.553 12.9783 12.408 12.7423 12.1842 12.7423H5.71762C5.45129 12.7423 5.31702 12.4211 5.5041 12.2315L13.5132 4.11699C13.7455 3.88157 14.132 4.14034 14.0029 4.44487L11.706 9.86069C11.6215 10.06 11.7694 10.2805 11.9859 10.2778L18.2773 10.1997C18.5444 10.1964 18.6823 10.5174 18.4961 10.7088Z" />
         </svg>
-      )}
-      {isConnected() && darkMode ? (
-        <svg
-          style={{ fill: iconColour }}
-          className={onClass(darkMode, "relative top-[4px]")}
-          width="20px"
-          height="20px"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 11.5373 21.3065 11.4608 21.0672 11.8568C19.9289 13.7406 17.8615 15 15.5 15C11.9101 15 9 12.0899 9 8.5C9 6.13845 10.2594 4.07105 12.1432 2.93276C12.5392 2.69347 12.4627 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
-        </svg>
-      ) : (
-        ""
       )}
     </div>
   );
@@ -230,7 +216,7 @@ const joinWebSocket = () => {
 };
 
 const ConnectionStatus = ({ children }) => {
-  const { isConnected, darkMode } = joinWebSocket();
+  const { isConnected } = joinWebSocket();
 
   return (
     <div>
@@ -242,7 +228,6 @@ const ConnectionStatus = ({ children }) => {
             className="absolute bottom-0 left-0 right-0 top-0"
             onTouchStart={(e) => {
               e.preventDefault();
-              e.stopImmediatePropagation();
             }}
           ></div>
         ) : (
@@ -262,6 +247,7 @@ const ColorControls = () => {
     setBlack,
     brightness,
     setBrightness,
+    darkMode,
     fade,
     setFade,
     colorCycle,
@@ -444,8 +430,26 @@ const ColorControls = () => {
                 />
               </div>
               <div className="flex flex-col">
-                <Label name="Brightness" value={brightness} />
-
+                <div className="flex flex-row gap-1">
+                  <Label name="Brightness" value={brightness} />
+                  <div className="flex grow justify-start opacity-40 relative top-[1px]">
+                    {darkMode ? (
+                      <div>
+                        <svg
+                          className="darkmode stroke-none"
+                          width="18px"
+                          height="18px"
+                          viewBox="0 0 64 64"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M43.139 2a29.885 29.885 0 0 1 5.121 16.756c0 16.701-13.686 30.24-30.57 30.24a30.656 30.656 0 0 1-15.689-4.285C7.209 54.963 17.93 62 30.318 62C47.816 62 62 47.969 62 30.66C62 17.867 54.246 6.871 43.139 2z"></path>
+                        </svg>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                </div>
                 <HorizontalSlider
                   globalTouch={globalTouch}
                   width={horizSliderWidth}
